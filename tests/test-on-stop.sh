@@ -95,14 +95,8 @@ chmod +x "$MOCK_PROJECT2/cursor-config/hooks/on-stop.sh"
 echo '{"conversation_id": "123"}' | "$MOCK_PROJECT2/cursor-config/hooks/on-stop.sh" > /dev/null 2>&1
 
 # Check marker is gone
-if [[ -f "$MOCK_PROJECT2/sessions/session-002/.ralph-auto-continue" ]]; then
-  echo -e "${RED}FAIL${NC}"
-  echo "    Auto-continue marker should have been removed"
-  TEST_FAILED=1
-  ((FAILED_TESTS++))
-else
-  test_pass
-fi
+assert_file_not_exists "$MOCK_PROJECT2/sessions/session-002/.ralph-auto-continue"
+test_pass
 
 # =============================================================================
 # Test: Second call returns empty JSON after marker removed
@@ -165,13 +159,8 @@ echo "Continue without jq" > "$MOCK_PROJECT5/sessions/session-005/.ralph-auto-co
 cp "$HOOK" "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh"
 chmod +x "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh"
 
-JQ_PATH="$(which jq 2>/dev/null || true)"
-if [[ -n "$JQ_PATH" ]]; then
-  MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$JQ_PATH")" | tr '\n' ':')
-else
-  MODIFIED_PATH="$PATH"
-fi
-OUTPUT=$(echo '{"conversation_id": "123"}' | PATH="$MODIFIED_PATH" "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh" 2>/dev/null)
+# Use run_without_jq helper to shadow jq with a failing wrapper
+OUTPUT=$(echo '{"conversation_id": "123"}' | run_without_jq "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh" 2>/dev/null)
 EXIT_CODE=$?
 assert_exit_code "0" "$EXIT_CODE"
 assert_contains "$OUTPUT" "followup_message"

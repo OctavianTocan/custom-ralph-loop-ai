@@ -111,6 +111,18 @@ assert_file_exists() {
   fi
 }
 
+# Assert file does not exist
+assert_file_not_exists() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    echo -e "${RED}FAIL${NC}"
+    echo "    Expected file NOT to exist: $file"
+    TEST_FAILED=1
+    ((FAILED_TESTS++)) || true
+    return 1
+  fi
+}
+
 # Assert file is executable
 assert_file_executable() {
   local file="$1"
@@ -185,4 +197,21 @@ test_skip() {
   echo -e "${YELLOW}SKIP${NC} ($reason)"
   ((SKIPPED_TESTS++)) || true
   ((TOTAL_TESTS--)) || true
+}
+
+# Run a command with jq hidden from PATH
+# Usage: run_without_jq command [args...]
+# This creates a wrapper that shadows jq with a non-functional script
+run_without_jq() {
+  local tmp_bin
+  tmp_bin=$(mktemp -d)
+  # Create a fake jq that always fails (simulates jq not being installed)
+  echo '#!/bin/bash
+exit 127' > "$tmp_bin/jq"
+  chmod +x "$tmp_bin/jq"
+  # Run command with fake jq first in PATH
+  PATH="$tmp_bin:$PATH" "$@"
+  local exit_code=$?
+  rm -rf "$tmp_bin"
+  return $exit_code
 }

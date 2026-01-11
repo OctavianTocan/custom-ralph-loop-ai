@@ -119,14 +119,8 @@ test_pass
 # Test: Hook handles missing jq gracefully (if we can simulate)
 # =============================================================================
 test_start "falls back when jq is not in PATH"
-# Create a modified PATH without jq
-JQ_PATH="$(which jq 2>/dev/null || true)"
-if [[ -n "$JQ_PATH" ]]; then
-  MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$JQ_PATH")" | tr '\n' ':')
-else
-  MODIFIED_PATH="$PATH"
-fi
-OUTPUT=$(echo '{"command": "test"}' | PATH="$MODIFIED_PATH" "$HOOK" 2>/dev/null)
+# Use run_without_jq helper to shadow jq with a failing wrapper
+OUTPUT=$(echo '{"command": "test"}' | run_without_jq "$HOOK" 2>/dev/null)
 EXIT_CODE=$?
 assert_exit_code "0" "$EXIT_CODE"
 assert_valid_json "$OUTPUT"

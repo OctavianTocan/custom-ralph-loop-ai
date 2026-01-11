@@ -97,18 +97,16 @@ jobs:
           
           # Create annotated tag with PR information
           git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION
-
-Triggered by PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
-
-Bump type: ${{ steps.bump.outputs.bump_type }}
-
-Co-Authored-By: Warp <agent@warp.dev>"
+          
+          Triggered by PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}
+          
+          Bump type: ${{ steps.bump.outputs.bump_type }}"
           
           # Push the tag
           git push origin "$NEW_VERSION"
           
-          echo "✅ Created and pushed tag: $NEW_VERSION"
-          echo "🚀 This will trigger the release workflow automatically"
+          echo "Created and pushed tag: $NEW_VERSION"
+          echo "This will trigger the release workflow automatically"
       
       - name: Comment on PR
         uses: actions/github-script@v7
@@ -119,10 +117,10 @@ Co-Authored-By: Warp <agent@warp.dev>"
               issue_number: context.payload.pull_request.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🎉 Version **${{ steps.new_version.outputs.new_version }}** has been created and will be released shortly!
+              body: `Version **${{ steps.new_version.outputs.new_version }}** has been created and will be released shortly!
               
-📦 Release type: **${{ steps.bump.outputs.bump_type }}**
-🔖 Previous version: ${{ steps.get_tag.outputs.latest_tag }}
+Release type: **${{ steps.bump.outputs.bump_type }}**
+Previous version: ${{ steps.get_tag.outputs.latest_tag }}
 
 The release workflow has been triggered automatically.`
             })

@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/validate-command.sh",
+        "description": "Validate shell commands before execution"
+      }
+    ],
+    "afterShellExecution": [
+      {
+        "command": ".cursor/hooks/log-command.sh",
+        "description": "Log command execution for Ralph progress tracking"
+      }
+    ],
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/track-edit.sh",
+        "description": "Track file edits for Ralph session"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/on-stop.sh",
+        "description": "Handle agent stop - check for completion markers"
+      }
+    ]
+  }
+}

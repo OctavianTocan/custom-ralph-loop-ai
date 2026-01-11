@@ -289,7 +289,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@153407881ec5c72f914e6bcf213b1e4ce98758f6 # v5.0.0
         with:
           branch: ralph/nightly-coverage
           title: 'test: improve test coverage (automated)'

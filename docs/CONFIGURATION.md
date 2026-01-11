@@ -31,7 +31,8 @@ Complete reference for configuring Ralph and PRDs.
 ## Fields
 
 ### Top-Level Fields
-|| Field | Required | Description |
+
+| Field | Required | Description |
 |-------|----------|-------------|
 | `branchName` | ✅ Yes | Git branch to create/use |
 | `workflow` | ❌ No | Workflow to use (e.g., `"test-coverage"`) |

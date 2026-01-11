@@ -44,7 +44,7 @@ When preparing for GitHub:
 1. **Include these files:**
    - `ralph.sh` (main script)
    - `prompt.md` (agent instructions)
-   - `prd.json.example` (template)
+   - `examples/prd.json.example` (template)
    - `README.md` (documentation)
    - `INSTALL.md` (setup guide)
    - `PORTABLE.md` (portability docs)
@@ -72,7 +72,7 @@ cp -r .claude/ralph /tmp/test-ralph
 
 # 2. Create test session
 mkdir -p /tmp/test-ralph/sessions/test
-cp /tmp/test-ralph/prd.json.example /tmp/test-ralph/sessions/test/prd.json
+cp /tmp/test-ralph/examples/prd.json.example /tmp/test-ralph/sessions/test/prd.json
 
 # 3. Edit prd.json with test tasks
 

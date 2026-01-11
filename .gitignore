@@ -1,9 +1,18 @@
-# Ralph session files (keep structure, ignore content)
+# Ralph session files (user data - ignore all session content)
 sessions/*/ralph.log
 sessions/*/.ralph.lock
+sessions/*/prd.json
+sessions/*/progress.txt
+sessions/*/learnings.md
+sessions/*/SESSION-SUMMARY.md
+sessions/*/CLAUDE.md
 
-# Keep session directories but ignore temporary files
-sessions/**/.ralph.lock
-
-# Don't ignore session structure
+# Keep session directory structure
 !sessions/.gitkeep
+!sessions/
+
+# Ignore any project-specific files
+*.log
+prd.json
+progress.txt
+CLAUDE.md

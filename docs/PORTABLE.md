@@ -104,7 +104,7 @@ To verify Ralph is portable:
 2. **Create test session:**
    ```bash
    mkdir -p /tmp/test-ralph/sessions/test
-   cp /tmp/test-ralph/prd.json.example /tmp/test-ralph/sessions/test/prd.json
+   cp /tmp/test-ralph/examples/prd.json.example /tmp/test-ralph/sessions/test/prd.json
    ```
 
 3. **Run from new location:**

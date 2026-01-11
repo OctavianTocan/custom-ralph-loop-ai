@@ -42,9 +42,9 @@ grep -r "keyword1\|keyword2" docs/solutions/ --include="*.md" -l
 - Reference successful patterns for similar work
 
 **Example searches:**
-- Feature: "React 19 upgrade" → `grep -r "react\|upgrade\|version" docs/solutions/`
-- Feature: "extension build" → `grep -r "extension\|build\|wxt\|manifest" docs/solutions/`
-- Feature: "TypeScript strict" → `grep -r "typescript\|strict\|types" docs/solutions/`
+- Feature: "user authentication" → `grep -r "auth\|login\|session" docs/solutions/`
+- Feature: "API endpoint" → `grep -r "api\|endpoint\|route" docs/solutions/`
+- Feature: "TypeScript migration" → `grep -r "typescript\|migration\|types" docs/solutions/`
 
 This gives Ralph context about previously solved problems before starting.
 
@@ -273,7 +273,7 @@ After analyzing the feature and getting agent/model preferences, create a comple
 {ralph-directory}/sessions/YYYY-MM-DD-{feature-name}/
 ```
 
-Example: `.ralph/sessions/2026-01-08-extension-react19-tooling/`
+Example: `.ralph/sessions/2026-01-08-user-authentication/`
 
 **Create the session:**
 1. Generate session name from date + feature (kebab-case)

@@ -298,6 +298,7 @@ Ralph runs ALL validation commands after each task. If ANY fail, it retries up t
 
 - [Installation Guide](docs/INSTALLATION.md) - Detailed setup instructions
 - [Usage Guide](docs/USAGE.md) - Complete workflow and commands
+- [Examples](docs/EXAMPLES.md) - Real-world examples and walkthroughs
 - [Writing PRDs](docs/WRITING-PRDS.md) - How to create effective PRDs
 - [Configuration](docs/CONFIGURATION.md) - PRD structure and options
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
@@ -307,7 +308,10 @@ Ralph runs ALL validation commands after each task. If ANY fail, it retries up t
 
 ## Examples
 
-See `examples/prd.json.example` for a complete PRD template.
+See:
+- `examples/prd.json.example` - Basic PRD template
+- `examples/prd.test-coverage.example` - Test coverage workflow template
+- [docs/EXAMPLES.md](docs/EXAMPLES.md) - Comprehensive real-world examples and walkthroughs
 
 ## License
 

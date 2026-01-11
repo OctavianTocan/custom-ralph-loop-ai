@@ -8,7 +8,7 @@ HOOK="$PROJECT_ROOT/cursor-config/hooks/on-stop.sh"
 
 # Create a temporary test environment
 TEST_TMP_DIR=$(mktemp -d)
-trap "rm -rf $TEST_TMP_DIR" EXIT
+trap 'rm -rf "$TEST_TMP_DIR"' EXIT
 
 # =============================================================================
 # Test: Always exits 0 (invariant)

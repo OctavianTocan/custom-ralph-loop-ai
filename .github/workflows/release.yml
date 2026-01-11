@@ -104,6 +104,7 @@ jobs:
           
           # Create CHANGELOG.md if it doesn't exist
           if [ ! -f CHANGELOG.md ]; then
+            # Use quoted 'EOF' to prevent variable expansion in template
             cat > CHANGELOG.md << 'EOF'
           # Changelog
           
@@ -117,20 +118,26 @@ jobs:
           fi
           
           # Create temporary file with new release entry
+          # Use unquoted EOF to allow variable expansion for VERSION and RELEASE_DATE
           cat > new_entry.md << EOF
           
           ## [$VERSION] - $RELEASE_DATE
           
           EOF
           
-          # Append the AI-generated release notes
-          cat release_notes_final.md >> new_entry.md
+          # Append the AI-generated release notes, ensuring the file exists and is non-empty
+          if [ -s release_notes_final.md ]; then
+            cat release_notes_final.md >> new_entry.md
+          else
+            echo "Error: release_notes_final.md is missing or empty. Aborting changelog update." >&2
+            exit 1
+          fi
           
           # Insert the new entry after the [Unreleased] section
           # Find the line number of [Unreleased] and insert after it
           if grep -q "## \[Unreleased\]" CHANGELOG.md; then
             # Split the file at [Unreleased] section and insert new content
-            awk '/## \[Unreleased\]/{print; print ""; system("cat new_entry.md"); next}1' CHANGELOG.md > CHANGELOG.tmp
+            awk '/## \[Unreleased\]/{print; print ""; while ((getline line < "new_entry.md") > 0) print line; close("new_entry.md"); next}1' CHANGELOG.md > CHANGELOG.tmp
             mv CHANGELOG.tmp CHANGELOG.md
           else
             # If no [Unreleased] section, just append to the file
@@ -142,34 +149,19 @@ jobs:
           
           echo "CHANGELOG.md updated with release $VERSION"
       
-      - name: Commit and push changelog
+      - name: Check changelog changes (no commit on tag)
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git add CHANGELOG.md
-          
-          # Check if there are changes to commit
-          if git diff --staged --quiet; then
-            echo "No changes to CHANGELOG.md"
+          # This workflow is triggered by a pushed tag, so the tagged commit already exists.
+          # To avoid diverging branch history from the tag, we do NOT commit or push changes here.
+          # The changelog update is generated for informational purposes and will be included
+          # in future releases when the changelog update happens before tag creation.
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "No changes to CHANGELOG.md in the workspace."
           else
-            git commit -m "chore: update changelog for v${{ steps.version.outputs.version }}
-          
-          Co-Authored-By: Warp <agent@warp.dev>"
-            
-            # Push to the branch that the tag points to (typically master/main)
-            # Get the branch name from the tag
-            BRANCH=$(git branch -r --contains ${{ steps.version.outputs.tag }} | grep -v HEAD | head -n1 | sed 's/.*origin\///')
-            
-            if [ -n "$BRANCH" ]; then
-              git push origin HEAD:$BRANCH
-              echo "Pushed changelog update to $BRANCH"
-            else
-              echo "Warning: Could not determine branch, skipping push"
-            fi
+            echo "CHANGELOG.md was updated in the workspace for this release."
+            echo "To include changelog updates in tagged releases, update the CHANGELOG.md"
+            echo "before creating and pushing the version tag."
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Create release packages
         run: |

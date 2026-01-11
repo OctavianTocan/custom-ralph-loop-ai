@@ -16,3 +16,9 @@ sessions/*/CLAUDE.md
 prd.json
 progress.txt
 CLAUDE.md
+
+# Release artifacts (created by CI, not stored in git)
+*.tar.gz
+*.zip
+ralph-v*.tar.gz
+ralph-v*.zip

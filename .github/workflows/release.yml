@@ -104,7 +104,7 @@ jobs:
           
           # Create CHANGELOG.md if it doesn't exist
           if [ ! -f CHANGELOG.md ]; then
-            # Use quoted 'EOF' to prevent variable expansion in template
+            # Use quoted 'EOF' to prevent variable expansion in static header content
             cat > CHANGELOG.md << 'EOF'
           # Changelog
           

@@ -1,0 +1,29 @@
+{
+  "branchName": "ralph/test-coverage",
+  "workflow": "test-coverage",
+  "agent": "claude",
+  "model": "sonnet",
+  "coverageCommand": "pnpm test --coverage",
+  "coverageTarget": 85,
+  "validationCommands": {
+    "test": "pnpm test --coverage"
+  },
+  "userStories": [
+    {
+      "id": "COV-000",
+      "title": "Improve test coverage to target",
+      "acceptanceCriteria": [
+        "Run coverage command to identify uncovered user-facing behavior",
+        "Write exactly ONE meaningful test per iteration (not coverage-only tests)",
+        "Test validates real user behavior with clear assertions",
+        "Re-run coverage after test and record old/new % in progress.txt",
+        "Commit with format: test(<area>): <user-facing behavior>",
+        "When coverage >= target, set passes: true and output <promise>COMPLETE</promise>",
+        "Do NOT continue after reaching target"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "This is a long-lived story. Do NOT mark as passes: true until coverage reaches the target. Focus on quality: one well-written test that validates real behavior is worth more than ten tests that just hit lines."
+    }
+  ]
+}

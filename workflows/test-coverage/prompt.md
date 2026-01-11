@@ -85,7 +85,7 @@ If you encounter code that is legitimately not worth testing (trivial code, fram
 
 ```typescript
 /* istanbul ignore next */
-// Or for other tools: /* c8 ignore next */ /* @jest-ignore */
+// Or for other tools: /* c8 ignore next */
 ```
 
 Document in your commit message and `progress.txt` why the code was excluded.

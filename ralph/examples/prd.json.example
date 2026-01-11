@@ -1,0 +1,53 @@
+{
+  "branchName": "ralph/utility-functions",
+  "agent": "claude",
+  "model": "sonnet",
+  "validationCommands": {
+    "typecheck": "pnpm typecheck"
+  },
+  "userStories": [
+    {
+      "id": "UTIL-001",
+      "title": "Add capitalize utility function",
+      "acceptanceCriteria": [
+        "Function takes string input",
+        "Returns string with first letter capitalized",
+        "Handles empty string",
+        "Handles single character",
+        "Exported from utils package",
+        "typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "Create in packages/utils/src/string.ts"
+    },
+    {
+      "id": "UTIL-002",
+      "title": "Add truncate utility function",
+      "acceptanceCriteria": [
+        "Function takes string and max length",
+        "Returns truncated string with ellipsis if needed",
+        "Does not truncate if string length <= max",
+        "Exported from utils package",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Create in packages/utils/src/string.ts alongside capitalize"
+    },
+    {
+      "id": "UTIL-003",
+      "title": "Add tests for utility functions",
+      "acceptanceCriteria": [
+        "Test capitalize with various inputs",
+        "Test truncate with various inputs",
+        "Edge cases covered",
+        "All tests pass",
+        "typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Create in packages/utils/src/string.test.ts"
+    }
+  ]
+}

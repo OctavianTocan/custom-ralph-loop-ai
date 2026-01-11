@@ -3,7 +3,7 @@ set -e
 
 # Ralph Autonomous Coding Loop
 # Usage: ./ralph.sh [iterations] [--session session-name] [--force]
-#        Or: ralph [iterations] [--session session-name] [--force] (if installed)
+#        Or: ./ralph.sh session-name [iterations] [--force]
 # Output goes to ralph.log in session directory
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -25,6 +25,8 @@ while [[ $# -gt 0 ]]; do
     *)
       if [[ "$1" =~ ^[0-9]+$ ]]; then
         MAX_ITERATIONS="$1"
+      elif [[ -z "$SESSION_DIR" ]]; then
+        SESSION_DIR="$1"
       fi
       shift
       ;;
@@ -231,22 +233,30 @@ echo ""
 # ============================================================================
 # STARTUP BANNER
 # ============================================================================
+C='\033[0;36m'
+G='\033[0;32m'
+Y='\033[1;33m'
+D='\033[2m'
+N='\033[0m'
+BOLD='\033[1m'
+
 echo ""
-echo "============================================================================"
-echo "  RALPH - Autonomous Coding Loop"
-echo "============================================================================"
+echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
+echo -e "${C}║${N}                    ${BOLD}${G}RALPH${N} ${D}AUTONOMOUS CODING LOOP${N}                    ${C}║${N}"
+echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
 echo ""
-echo "  Session:    $(basename "$SESSION_DIR")"
-echo "  Agent:      $AGENT"
-[[ -n "$MODEL" ]] && echo "  Model:      $MODEL"
-echo "  Iterations: $MAX_ITERATIONS"
-echo "  PID:        $$"
+echo -e "  ${BOLD}Session:${N}    ${C}$(basename "$SESSION_DIR")${N}"
+echo -e "  ${BOLD}Agent:${N}      ${G}$AGENT${N}"
+[[ -n "$MODEL" ]] && echo -e "  ${BOLD}Model:${N}      ${Y}$MODEL${N}"
+echo -e "  ${BOLD}Iterations:${N} ${BOLD}$MAX_ITERATIONS${N}"
+echo -e "  ${BOLD}PID:${N}        ${D}$$${N}"
 echo ""
-echo "  Monitor:    tail -f $LOG_FILE"
-echo "  Status:     ./status.sh"
-echo "  Stop:       ./stop.sh or kill $$"
+echo -e "  ${BOLD}Monitor:${N}    ${D}tail -f${N} $LOG_FILE"
+echo -e "  ${BOLD}Status:${N}     ${D}./status.sh${N}"
+echo -e "  ${BOLD}Watch:${N}      ${D}./watch.sh${N}"
+echo -e "  ${BOLD}Stop:${N}       ${D}kill $$${N}"
 echo ""
-echo "============================================================================"
+echo -e "${C}════════════════════════════════════════════════════════════════════════${N}"
 echo ""
 
 # Initialize log
@@ -263,8 +273,16 @@ echo ""
 # ============================================================================
 # MAIN LOOP
 # ============================================================================
+C='\033[0;36m'
+N='\033[0m'
+BOLD='\033[1m'
+
 for i in $(seq 1 $MAX_ITERATIONS); do
-  echo "--- Iteration $i of $MAX_ITERATIONS: $(date) ---" | tee -a "$LOG_FILE"
+  echo ""
+  echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
+  echo -e "${C}║${N}  ${BOLD}Iteration $i${N} of ${BOLD}$MAX_ITERATIONS${N}  ${N}$(date)${N}  ${C}║${N}" | tee -a "$LOG_FILE"
+  echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+  echo "" | tee -a "$LOG_FILE"
 
   PROMPT="# Session Context
 
@@ -288,21 +306,23 @@ $(cat "$SCRIPT_DIR/prompt.md")"
   # Check for completion markers in agent output
   if tail -100 "$LOG_FILE" | grep -q "<promise>COMPLETE</promise>"; then
     echo "" | tee -a "$LOG_FILE"
-    echo "=== COMPLETE (agent signaled): $(date) ===" | tee -a "$LOG_FILE"
+    G='\033[0;32m'
+    echo -e "${G}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}║${N}                    ${BOLD}${G}✓ RALPH COMPLETE${N}                    ${G}║${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}║${N}              ${N}Agent signaled completion: $(date)${N}              ${G}║${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
     echo ""
-    echo "============================================================================"
-    echo "  RALPH COMPLETE"
-    echo "============================================================================"
     exit 0
   fi
 
   if tail -100 "$LOG_FILE" | grep -q "<promise>BLOCKED"; then
     echo "" | tee -a "$LOG_FILE"
-    echo "=== BLOCKED: $(date) ===" | tee -a "$LOG_FILE"
+    R='\033[0;31m'
+    echo -e "${R}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
+    echo -e "${R}║${N}                    ${BOLD}${R}✗ RALPH BLOCKED${N}                    ${R}║${N}" | tee -a "$LOG_FILE"
+    echo -e "${R}║${N}              ${N}Check log file: $LOG_FILE${N}              ${R}║${N}" | tee -a "$LOG_FILE"
+    echo -e "${R}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
     echo ""
-    echo "============================================================================"
-    echo "  RALPH BLOCKED - Check $LOG_FILE"
-    echo "============================================================================"
     exit 1
   fi
 
@@ -310,17 +330,20 @@ $(cat "$SCRIPT_DIR/prompt.md")"
   if command -v jq &> /dev/null && [[ -f "$SESSION_DIR/prd.json" ]]; then
     TOTAL_STORIES=$(jq '.userStories | length' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
     PASSED_STORIES=$(jq '[.userStories[] | select(.passes == true)] | length' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
-    
+
     if [[ "$TOTAL_STORIES" -gt 0 && "$TOTAL_STORIES" == "$PASSED_STORIES" ]]; then
       echo "" | tee -a "$LOG_FILE"
-      echo "=== ALL PRD STORIES COMPLETE ($PASSED_STORIES/$TOTAL_STORIES): $(date) ===" | tee -a "$LOG_FILE"
+      G='\033[0;32m'
+      echo -e "${G}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}║${N}                    ${BOLD}${G}✓ RALPH COMPLETE${N}                    ${G}║${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}║${N}              ${N}All $PASSED_STORIES/$TOTAL_STORIES stories passed${N}              ${G}║${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}║${N}                        ${N}$(date)${N}                        ${G}║${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
       echo ""
-      echo "============================================================================"
-      echo "  RALPH COMPLETE - All $TOTAL_STORIES stories passed"
-      echo "============================================================================"
       exit 0
     else
-      echo "Progress: $PASSED_STORIES/$TOTAL_STORIES stories complete" | tee -a "$LOG_FILE"
+      PCT=$((PASSED_STORIES * 100 / TOTAL_STORIES))
+      echo -e "${C}[Progress]${N} ${G}$PASSED_STORIES${N}/${BOLD}$TOTAL_STORIES${N} stories complete ${D}($PCT%)${N}" | tee -a "$LOG_FILE"
     fi
   fi
 
@@ -328,9 +351,10 @@ $(cat "$SCRIPT_DIR/prompt.md")"
 done
 
 echo "" | tee -a "$LOG_FILE"
-echo "=== Max iterations reached: $(date) ===" | tee -a "$LOG_FILE"
+Y='\033[1;33m'
+echo -e "${Y}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
+echo -e "${Y}║${N}                  ${BOLD}MAX ITERATIONS REACHED${N}                  ${Y}║${N}" | tee -a "$LOG_FILE"
+echo -e "${Y}║${N}              ${N}Run again to continue: $(date)${N}              ${Y}║${N}" | tee -a "$LOG_FILE"
+echo -e "${Y}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
 echo ""
-echo "============================================================================"
-echo "  MAX ITERATIONS REACHED - Run again to continue"
-echo "============================================================================"
 exit 1

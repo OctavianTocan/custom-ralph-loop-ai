@@ -60,17 +60,17 @@ for line in sys.stdin:
     try:
         d = json.loads(line)
     except: continue
-    
+
     typ = d.get('type', '')
     sub = d.get('subtype', '')
     tc = d.get('tool_call', {})
-    
+
     if typ == 'text':
         txt = clean(d.get('text', ''))
         if txt:
             buf.append(txt)
             was_tool = False
-    
+
     elif sub == 'started':
         if buf:
             msg = clean(''.join(buf))
@@ -78,7 +78,7 @@ for line in sys.stdin:
                 if was_tool: emit('', '')
                 emit(msg, msg)
             buf = []
-        
+
         # Build colored (for terminal) and plain (for log) versions
         term = plain = ''
         if 'readToolCall' in tc:
@@ -109,11 +109,11 @@ for line in sys.stdin:
             b = base(tc['listDirToolCall'].get('args', {}).get('path', ''))
             term = f"{D}[ls]{N} {C}{b}{N}"
             plain = f"[ls] {b}"
-        
+
         if term:
             emit(term, plain, nl=False)
             was_tool = True
-    
+
     elif sub == 'completed':
         for k in tc:
             res = tc[k].get('result', {})
@@ -133,10 +133,20 @@ if buf:
 if logf: logf.close()
 PYEOF
 
-echo "----------------------------------------------------------------------------"
+# Enhanced separator
+echo ""
+echo -e "\033[0;36m╔════════════════════════════════════════════════════════════════════════╗\033[0m"
+echo -e "\033[0;36m║\033[0m                    \033[1mStarting Agent Iteration\033[0m                    \033[0;36m║\033[0m"
+echo -e "\033[0;36m╚════════════════════════════════════════════════════════════════════════╝\033[0m"
+echo ""
+
 export PYTHONUNBUFFERED=1
 export RALPH_LOG_FILE="$LOG_FILE"
 stdbuf -oL cursor "${CMD_ARGS[@]}" 2>&1 | python3 -u "$PARSER" || true
 rm -f "$PARSER"
+
 echo ""
-echo "----------------------------------------------------------------------------"
+echo -e "\033[0;36m╔════════════════════════════════════════════════════════════════════════╗\033[0m"
+echo -e "\033[0;36m║\033[0m                    \033[1mIteration Complete\033[0m                        \033[0;36m║\033[0m"
+echo -e "\033[0;36m╚════════════════════════════════════════════════════════════════════════╝\033[0m"
+echo ""

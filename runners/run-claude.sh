@@ -1,7 +1,12 @@
 #!/bin/bash
 # Claude Code runner for Ralph
 # Usage: run-claude.sh <prompt-file> <log-file> [session-dir] [model]
-# Reads prompt from stdin or file, outputs to log file
+#
+# Enhanced with features from Claude CLI print mode:
+# - JSON output format for structured responses
+# - Fallback model support
+# - Session management
+# - Real-time streaming with structured parsing
 
 set -e
 
@@ -9,6 +14,9 @@ PROMPT_FILE="$1"
 LOG_FILE="$2"
 SESSION_DIR="$3"
 MODEL="$4"
+
+# Default fallback model (used when primary model is overloaded)
+FALLBACK_MODEL="${RALPH_FALLBACK_MODEL:-haiku}"
 
 if [[ -z "$PROMPT_FILE" || -z "$LOG_FILE" ]]; then
   echo "Usage: run-claude.sh <prompt-file> <log-file> [session-dir] [model]" >&2
@@ -18,7 +26,7 @@ fi
 # Check if claude CLI is available
 if ! command -v claude &> /dev/null; then
   echo "" >&2
-  echo "❌ Error: Claude CLI not found!" >&2
+  echo "Error: Claude CLI not found!" >&2
   echo "" >&2
   echo "To install Claude CLI:" >&2
   echo "  1. Visit: https://claude.ai/docs/cli" >&2
@@ -29,10 +37,77 @@ if ! command -v claude &> /dev/null; then
   exit 1
 fi
 
-# Run claude, output to both console and log file (real-time)
-# Add --model flag if model is specified
+# Colors for terminal output
+C='\033[0;36m'
+G='\033[0;32m'
+Y='\033[1;33m'
+D='\033[2m'
+N='\033[0m'
+BOLD='\033[1m'
+
+# Enhanced separator
+echo ""
+echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
+echo -e "${C}║${N}                    ${BOLD}Starting Claude Agent${N}                    ${C}║${N}"
+echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
+echo ""
+
+# Build command arguments
+CMD_ARGS=("-p" "--dangerously-skip-permissions")
+
+# Add model if specified
 if [[ -n "$MODEL" ]]; then
-  claude -p --dangerously-skip-permissions --model "$MODEL" < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE" || true
-else
-  claude -p --dangerously-skip-permissions < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE" || true
+  CMD_ARGS+=("--model" "$MODEL")
+  # Add fallback model for reliability
+  CMD_ARGS+=("--fallback-model" "$FALLBACK_MODEL")
 fi
+
+# Optional: Use JSON output for structured responses (can be enabled via env var)
+# This provides cost tracking, token counts, etc.
+if [[ "${RALPH_JSON_OUTPUT:-false}" == "true" ]]; then
+  CMD_ARGS+=("--output-format" "json")
+fi
+
+# Optional: Ephemeral session (no disk storage)
+if [[ "${RALPH_EPHEMERAL:-false}" == "true" ]]; then
+  CMD_ARGS+=("--no-session-persistence")
+fi
+
+# Optional: Custom system prompt append
+if [[ -n "${RALPH_SYSTEM_PROMPT_APPEND:-}" ]]; then
+  CMD_ARGS+=("--append-system-prompt" "$RALPH_SYSTEM_PROMPT_APPEND")
+fi
+
+# Run claude with prompt from file
+# Output to both console and log file (real-time)
+if [[ "${RALPH_JSON_OUTPUT:-false}" == "true" ]]; then
+  # JSON mode: parse and display structured output
+  RESULT=$(claude "${CMD_ARGS[@]}" < "$PROMPT_FILE" 2>&1)
+  echo "$RESULT" >> "$LOG_FILE"
+
+  # Extract and display key info
+  if command -v jq &> /dev/null; then
+    IS_ERROR=$(echo "$RESULT" | jq -r '.is_error // false')
+    COST=$(echo "$RESULT" | jq -r '.total_cost_usd // "?"')
+    RESULT_TEXT=$(echo "$RESULT" | jq -r '.result // ""')
+
+    echo "$RESULT_TEXT"
+    echo ""
+    echo -e "${D}Cost: \$${COST}${N}"
+
+    if [[ "$IS_ERROR" == "true" ]]; then
+      echo -e "${Y}Warning: Claude reported an error${N}" | tee -a "$LOG_FILE"
+    fi
+  else
+    echo "$RESULT"
+  fi
+else
+  # Standard text mode: stream output in real-time
+  claude "${CMD_ARGS[@]}" < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE" || true
+fi
+
+echo ""
+echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
+echo -e "${C}║${N}                    ${BOLD}Claude Agent Complete${N}                    ${C}║${N}"
+echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
+echo ""

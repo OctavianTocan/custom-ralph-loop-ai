@@ -218,6 +218,43 @@ See [docs/WRITING-PRDS.md](docs/WRITING-PRDS.md) for complete PRD writing guide.
 
 See [docs/CONFIGURATION.md](docs/CONFIGURATION.md) for detailed configuration options.
 
+## Cursor Integration
+
+If you're using Cursor, Ralph supports Cursor's hooks system for enhanced integration:
+
+```bash
+# Install hooks automatically
+./install-cursor-hooks.sh
+
+# Or manually:
+cp cursor-config/hooks.json .cursor/hooks.json
+cp -r cursor-config/hooks/ .cursor/hooks/
+chmod +x .cursor/hooks/*.sh
+```
+
+This enables:
+- **Command validation** — Block dangerous commands before execution
+- **Session logging** — Track all commands and file edits
+- **Auto-continue** — Support for Ralph's multi-iteration loop pattern
+
+### Claude CLI Environment Variables
+
+When using the `claude` agent, you can configure behavior via environment variables:
+
+```bash
+# Use fallback model when primary is overloaded
+RALPH_FALLBACK_MODEL=haiku ./ralph.sh 25 --session my-feature
+
+# Enable JSON output for cost tracking
+RALPH_JSON_OUTPUT=true ./ralph.sh 25 --session my-feature
+
+# Ephemeral mode (no session persistence)
+RALPH_EPHEMERAL=true ./ralph.sh 25 --session my-feature
+
+# Append custom system prompt instructions
+RALPH_SYSTEM_PROMPT_APPEND="Focus on TypeScript best practices" ./ralph.sh 25 --session my-feature
+```
+
 ## Troubleshooting
 
 **Ralph stuck on a task?**

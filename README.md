@@ -264,6 +264,7 @@ Ralph runs ALL validation commands after each task. If ANY fail, it retries up t
 - [Writing PRDs](docs/WRITING-PRDS.md) - How to create effective PRDs
 - [Configuration](docs/CONFIGURATION.md) - PRD structure and options
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
+- [Release Process](docs/RELEASING.md) - Creating releases with AI-generated notes
 - [Portability](docs/PORTABLE.md) - How Ralph works portably
 - [Changes](docs/CHANGES.md) - Change log
 

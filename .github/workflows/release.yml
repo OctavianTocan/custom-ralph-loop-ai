@@ -36,8 +36,14 @@ jobs:
             echo "Previous tag: $PREV_TAG"
           fi
       
-      - name: Generate changelog
-        id: changelog
+      - name: Install Cursor CLI
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.cursor/bin" >> $GITHUB_PATH
+      
+      - name: Generate AI release notes
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
         run: |
           if [ -z "${{ steps.previous_tag.outputs.previous_tag }}" ]; then
             COMMITS=$(git log --pretty=format:"- %s" HEAD~10..HEAD)
@@ -47,21 +53,49 @@ jobs:
             STATS=$(git diff --stat ${{ steps.previous_tag.outputs.previous_tag }}..HEAD)
           fi
           
-          # Create release notes
-          cat > release_notes.md << 'EOF'
-          ## Changes
+          # Create prompt for Cursor AI
+          cat > prompt.txt << EOF
+          You are generating release notes for version ${{ steps.version.outputs.version }} of Ralph - an autonomous AI coding loop system.
           
+          Previous version: ${{ steps.previous_tag.outputs.previous_tag || 'None (first release)' }}
+          
+          COMMIT MESSAGES:
           $COMMITS
           
-          ## Statistics
-          
-          ```
+          FILE STATISTICS:
           $STATS
-          ```
+          
+          Generate concise, user-focused release notes in markdown format with:
+          
+          1. A brief summary paragraph (2-3 sentences) explaining what this release brings
+          2. Key changes organized by category (use emojis):
+             - ✨ Features (new capabilities)
+             - 🐛 Fixes (bug fixes)
+             - 📚 Documentation (doc improvements)
+             - 🔧 Improvements (enhancements, refactors)
+             - ⚠️  Breaking Changes (if any)
+          
+          3. Keep it concise - users want to quickly understand what changed
+          4. Focus on user impact, not implementation details
+          5. Use bullet points within each category
+          
+          DO NOT include a title or version number (it will be added separately).
+          DO NOT include generic fluff like "We're excited to announce..."
           EOF
           
-          # Expand variables
-          eval "echo \"$(cat release_notes.md)\"" > release_notes_final.md
+          # Generate release notes with Cursor CLI
+          cursor-agent -p --output-format text "$(cat prompt.txt)" > release_notes_final.md || {
+            # Fallback to basic format if Cursor fails
+            echo "## Changes" > release_notes_final.md
+            echo "" >> release_notes_final.md
+            echo "$COMMITS" >> release_notes_final.md
+            echo "" >> release_notes_final.md
+            echo "## Statistics" >> release_notes_final.md
+            echo "" >> release_notes_final.md
+            echo '```' >> release_notes_final.md
+            echo "$STATS" >> release_notes_final.md
+            echo '```' >> release_notes_final.md
+          }
       
       - name: Create release packages
         run: |

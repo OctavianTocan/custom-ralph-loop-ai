@@ -2,95 +2,46 @@
 
 ## Overview
 
-Ralph supports two release workflows:
-1. **Local Script** - Manual releases with AI-generated notes (recommended for personal projects)
-2. **GitHub Actions** - Automated CI releases (recommended for team projects)
+Ralph uses GitHub Actions for automated releases with AI-generated release notes powered by Cursor CLI.
 
-## Local Script Release
+## Setup
 
-### Prerequisites
+### 1. Add Cursor API Key to GitHub Secrets
 
-- `gh` CLI installed and authenticated
-- `tar` and `zip` utilities
-- (Optional) `cursor-agent` CLI with `CURSOR_API_KEY` for AI-generated release notes
+1. Get your API key from [Cursor Dashboard](https://cursor.com/dashboard?tab=background-agents)
+2. Go to your repo: `Settings` → `Secrets and variables` → `Actions`
+3. Click `New repository secret`
+4. Name: `CURSOR_API_KEY`
+5. Value: Your Cursor API key
+6. Click `Add secret`
 
-### Setup Cursor CLI (Optional)
+## Creating a Release
 
-For AI-generated release notes:
+When you push a tag matching `v*.*.*`, GitHub Actions automatically:
 
-```bash
-# Install Cursor CLI
-curl https://cursor.com/install -fsSL | bash
+1. <cite index="12-5">Installs Cursor CLI</cite>
+2. Analyzes changes since last tag
+3. <cite index="12-5">Uses `cursor-agent -p` for AI-generated release notes</cite>
+4. Creates `.tar.gz` and `.zip` packages
+5. Publishes GitHub release
 
-# Get API key from https://cursor.com/dashboard?tab=background-agents
-export CURSOR_API_KEY="your_key_here"
-
-# Add to your shell profile for persistence
-echo 'export CURSOR_API_KEY="your_key_here"' >> ~/.bashrc
-```
-
-### Create a Release
+### Steps to Release
 
 ```bash
-# Interactive - prompts for version
-./release.sh
-
-# Or specify version
-./release.sh 1.0.1
-```
-
-The script will:
-1. Validate version format (X.Y.Z)
-2. Check for uncommitted changes
-3. Generate diff summary
-4. Use Cursor AI to generate release notes (if available)
-5. Create `.tar.gz` and `.zip` packages
-6. Show preview and ask for confirmation
-7. Create git tag and push
-8. Create GitHub release with packages
-
-### AI-Generated Release Notes
-
-<cite index="2-3,2-6">When `cursor-agent` is available, the script uses print mode (`-p`) for non-interactive scripting</cite> to analyze your changes and generate user-focused release notes with:
-
-- Brief summary of the release
-- Changes organized by category (Features, Fixes, Documentation, etc.)
-- Focus on user impact vs implementation details
-
-Without Cursor CLI, it falls back to a simple changelog format.
-
-## GitHub Actions Release
-
-### How It Works
-
-The GitHub Actions workflow (`.github/workflows/release.yml`) triggers automatically when you push a tag matching `v*.*.*`.
-
-### Create a Release with CI
-
-```bash
-# Commit your changes
+# 1. Commit your changes
 git add .
 git commit -m "feat: add new feature"
 git push
 
-# Create and push a tag
+# 2. Create and push a tag
 git tag v1.0.1
 git push origin v1.0.1
+
+# 3. Watch the automation
+# Visit: https://github.com/OctavianTocan/custom-ralph-loop-ai/actions
 ```
 
-The workflow will:
-1. Checkout code with full history
-2. Calculate changes since last tag
-3. Generate changelog from commits
-4. Create release packages
-5. Create GitHub release automatically
-
-### Monitoring CI Releases
-
-View progress at:
-```
-https://github.com/OctavianTocan/custom-ralph-loop-ai/actions
-```
+The workflow will automatically generate release notes using Cursor AI, analyzing your commits and changes to create user-focused documentation.
 
 ## Version Numbering
 
@@ -106,22 +57,16 @@ Examples:
 - `1.1.0` - New feature
 - `2.0.0` - Breaking change
 
-## Which Method Should I Use?
+## AI-Generated Release Notes
 
-### Use Local Script When:
-- ✅ Personal projects
-- ✅ You want AI-generated release notes
-- ✅ You want to preview before publishing
-- ✅ You want more control over the process
+The workflow <cite index="12-5">uses Cursor CLI in print mode (`-p`) with `--output-format text`</cite> to generate release notes that include:
 
-### Use GitHub Actions When:
-- ✅ Team projects with multiple contributors
-- ✅ You want fully automated releases
-- ✅ You want consistent release processes
-- ✅ You prefer CI/CD automation
+- **Brief Summary** - What this release brings
+- **Categorized Changes** - Features, fixes, documentation, improvements
+- **User Impact Focus** - Benefits over implementation details
+- **Emoji Tags** - Visual categorization (✨ Features, 🐛 Fixes, etc.)
 
-### Use Both:
-You can use both methods! The local script is great for testing, while CI ensures consistency for production releases.
+If Cursor CLI fails, it falls back to a simple changelog format.
 
 ## Troubleshooting
 
@@ -149,8 +94,8 @@ sudo apt install gh
 gh auth login
 ```
 
-### "cursor-agent not found"
-This is optional. The script works without it, just with basic release notes instead of AI-generated ones.
+### Cursor API Key Not Set
+The workflow will fall back to basic changelog format if `CURSOR_API_KEY` secret is not configured.
 
 ### CI Release Failed
 Check the Actions tab on GitHub for error logs. Common issues:
@@ -158,61 +103,63 @@ Check the Actions tab on GitHub for error logs. Common issues:
 - Insufficient permissions
 - Network issues
 
-## Examples
+## Example Workflow
 
-### Local Release with AI Notes
 ```bash
-# Set up Cursor (one time)
-export CURSOR_API_KEY="sk_..."
-
-# Create release
-./release.sh 1.0.1
-
-# Script shows AI-generated preview:
-# ✨ Features
-# - Add automated release script with AI-generated notes
-# 
-# 📚 Documentation
-# - Add comprehensive release guide
-```
-
-### CI Release
-```bash
-# Make changes
+# 1. Make changes
 git add .
 git commit -m "feat(core): add new validation command"
 git push
 
-# Tag and trigger release
+# 2. Tag and trigger release
 git tag v1.1.0
 git push origin v1.1.0
 
-# GitHub Actions creates the release automatically
+# 3. GitHub Actions automatically:
+# - Installs Cursor CLI
+# - Analyzes your changes with AI
+# - Generates categorized release notes:
+#   ✨ Features
+#   - Add new validation command
+#   
+#   📚 Documentation  
+#   - Update validation guide
+# - Creates release packages
+# - Publishes to GitHub Releases
 ```
 
 ## Best Practices
 
-1. **Test locally first** - Use the local script to validate packages before CI
-2. **Write good commit messages** - They become your changelog
-3. **Use conventional commits** - Makes release notes more organized
-4. **Tag only from main/master** - Don't tag feature branches
-5. **Review before tagging** - Once tagged, it's released (in CI mode)
+1. **Write good commit messages** - They become your AI-generated changelog
+2. **Use conventional commits** - Helps AI categorize changes better
+3. **Tag only from main/master** - Don't tag feature branches
+4. **Review before tagging** - Once tagged, release is automatic
 
 ## Release Checklist
 
 Before creating a release:
 - [ ] All tests pass
 - [ ] Documentation is updated
-- [ ] CHANGES.md is updated (if applicable)
 - [ ] Version number follows semver
-- [ ] Changes are committed and pushed
-- [ ] You're on the main/master branch
+- [ ] Changes are committed and pushed to main/master
+- [ ] `CURSOR_API_KEY` secret is configured (for AI release notes)
 
 ## Co-Authorship
 
-Both release methods automatically include:
+Releases automatically include:
 ```
 Co-Authored-By: Warp <agent@warp.dev>
 ```
 
 This gives credit to AI assistance in the release process.
+
+## How It Works
+
+The GitHub Actions workflow (`.github/workflows/release.yml`):
+
+1. **Triggers** on tags matching `v*.*.*`
+2. <cite index="12-5">**Installs Cursor CLI** via `curl https://cursor.com/install -fsS | bash`</cite>
+3. **Analyzes changes** - Compares current tag with previous tag
+4. <cite index="12-5">**Generates AI notes** - Uses `cursor-agent -p --output-format text`</cite> with commit messages and diff stats
+5. **Creates packages** - Both `.tar.gz` and `.zip` formats
+6. **Publishes release** - To GitHub Releases with generated notes

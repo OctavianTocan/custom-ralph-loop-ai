@@ -8,8 +8,6 @@ arguments: [plan-file]
 
 Helps you create a PRD (prd.json) for the autonomous AI coding loop, optionally backed by a spec/plan file.
 
-**Aliases:** This command is also available as `/ralph:setup` for backward compatibility.
-
 ## Your Task
 
 User provided: **$ARGUMENTS**

@@ -52,6 +52,7 @@ pnpm ralph 25 --session my-feature
 
 - `[iterations]` - Maximum number of iterations (default: 10)
 - `--session <name>` - Session name (required)
+- `--workflow <name>` - Workflow to use (optional, can also be specified in prd.json)
 - `--force` - Force run even if another instance is running
 
 ### Examples
@@ -62,6 +63,9 @@ pnpm ralph 25 --session my-feature
 
 # Run with default 10 iterations
 .ralph/ralph.sh --session my-feature
+
+# Run with test-coverage workflow
+.ralph/ralph.sh 25 --session my-feature --workflow test-coverage
 
 # Force run (overrides lock)
 .ralph/ralph.sh --session my-feature --force
@@ -202,6 +206,56 @@ If Ralph stopped before completing all tasks:
 ```
 
 Ralph reads `prd.json` and only works on tasks where `passes: false`.
+
+## Using Workflows
+
+### Test Coverage Workflow
+
+The `test-coverage` workflow helps you incrementally improve test coverage by writing exactly one meaningful test per iteration.
+
+**Setup:**
+
+1. Copy the example PRD:
+```bash
+cp .ralph/examples/prd.test-coverage.example .ralph/sessions/my-coverage/prd.json
+```
+
+2. Edit the PRD to configure your coverage command and target:
+```json
+{
+  "workflow": "test-coverage",
+  "coverageCommand": "pnpm test --coverage",
+  "coverageTarget": 85,
+  "validationCommands": {
+    "test": "pnpm test --coverage"
+  }
+}
+```
+
+3. Run Ralph with the workflow:
+```bash
+.ralph/ralph.sh 25 --session my-coverage --workflow test-coverage
+```
+
+**How it works:**
+- Each iteration, Ralph runs your coverage command to find uncovered user-facing behavior
+- Writes exactly ONE meaningful test (not coverage-only tests)
+- Re-runs coverage and records old/new % in progress.txt
+- Commits with format: `test(<area>): <user-facing behavior>`
+- Stops automatically when coverage ≥ target
+
+**Note:** The workflow enforces quality over quantity. One well-written test that validates real user behavior is worth more than ten tests that just hit lines of code.
+
+### Custom Workflows
+
+You can create custom workflows by adding a prompt file:
+
+```bash
+mkdir -p .ralph/workflows/my-workflow
+echo "# My Workflow Instructions" > .ralph/workflows/my-workflow/prompt.md
+```
+
+Then run with `--workflow my-workflow`.
 
 ## Common Workflows
 

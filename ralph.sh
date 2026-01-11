@@ -10,6 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MAX_ITERATIONS=10
 SESSION_DIR=""
 FORCE=false
+WORKFLOW=""
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -21,6 +22,10 @@ while [[ $# -gt 0 ]]; do
     --force|-f)
       FORCE=true
       shift
+      ;;
+    --workflow)
+      WORKFLOW="$2"
+      shift 2
       ;;
     *)
       if [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -117,9 +122,17 @@ MODEL=""
 if command -v jq &> /dev/null && [[ -f "$SESSION_DIR/prd.json" ]]; then
   AGENT=$(jq -r '.agent // "claude"' "$SESSION_DIR/prd.json" 2>/dev/null || echo "claude")
   MODEL=$(jq -r '.model // ""' "$SESSION_DIR/prd.json" 2>/dev/null || echo "")
+  # Read workflow from prd.json if not specified via CLI
+  if [[ -z "$WORKFLOW" ]]; then
+    WORKFLOW=$(jq -r '.workflow // ""' "$SESSION_DIR/prd.json" 2>/dev/null || echo "")
+  fi
 elif [[ -f "$SESSION_DIR/prd.json" ]]; then
   AGENT=$(grep -o '"agent"[[:space:]]*:[[:space:]]*"[^"]*"' "$SESSION_DIR/prd.json" 2>/dev/null | sed 's/.*"agent"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || echo "claude")
   MODEL=$(grep -o '"model"[[:space:]]*:[[:space:]]*"[^"]*"' "$SESSION_DIR/prd.json" 2>/dev/null | sed 's/.*"model"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || echo "")
+  # Read workflow from prd.json if not specified via CLI
+  if [[ -z "$WORKFLOW" ]]; then
+    WORKFLOW=$(grep -o '"workflow"[[:space:]]*:[[:space:]]*"[^"]*"' "$SESSION_DIR/prd.json" 2>/dev/null | sed 's/.*"workflow"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/' || echo "")
+  fi
 fi
 
 # Validate agent
@@ -155,6 +168,33 @@ case "$AGENT" in
     command -v cursor &> /dev/null || echo "Warning: Cursor CLI not found." >&2
     ;;
 esac
+
+# ============================================================================
+# WORKFLOW VALIDATION
+# ============================================================================
+WORKFLOW_PROMPT=""
+if [[ -n "$WORKFLOW" ]]; then
+  WORKFLOW_PROMPT_FILE="$SCRIPT_DIR/workflows/$WORKFLOW/prompt.md"
+  if [[ ! -f "$WORKFLOW_PROMPT_FILE" ]]; then
+    echo ""
+    echo "============================================================================"
+    echo "  ERROR: Workflow prompt not found: $WORKFLOW"
+    echo "============================================================================"
+    echo ""
+    echo "  Expected: $WORKFLOW_PROMPT_FILE"
+    echo ""
+    echo "  Available workflows:"
+    if [[ -d "$SCRIPT_DIR/workflows" ]]; then
+      ls -1 "$SCRIPT_DIR/workflows/" 2>/dev/null | sed 's/^/    - /' || echo "    (none)"
+    else
+      echo "    (none - workflows/ directory does not exist)"
+    fi
+    echo ""
+    echo "============================================================================"
+    exit 1
+  fi
+  WORKFLOW_PROMPT=$(cat "$WORKFLOW_PROMPT_FILE")
+fi
 
 # ============================================================================
 # BRANCH ENFORCEMENT - Ensure session is on the correct branch
@@ -296,6 +336,17 @@ Read these files from the session directory:
 ---
 
 $(cat "$SCRIPT_DIR/prompt.md")"
+
+  # Append workflow-specific prompt if workflow is specified
+  if [[ -n "$WORKFLOW_PROMPT" ]]; then
+    PROMPT="$PROMPT
+
+---
+
+# Workflow: $WORKFLOW
+
+$WORKFLOW_PROMPT"
+  fi
 
   PROMPT_FILE=$(mktemp)
   echo "$PROMPT" > "$PROMPT_FILE"

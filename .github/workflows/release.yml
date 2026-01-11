@@ -93,9 +93,75 @@ jobs:
             echo "## Statistics" >> release_notes_final.md
             echo "" >> release_notes_final.md
             echo '```' >> release_notes_final.md
-            echo "$STATS" >> release_notes_final.md
-            echo '```' >> release_notes_final.md
-          }
+          echo "$STATS" >> release_notes_final.md
+          echo '```' >> release_notes_final.md
+        }
+      
+      - name: Update CHANGELOG.md
+        run: |
+          RELEASE_DATE=$(date +%Y-%m-%d)
+          VERSION=${{ steps.version.outputs.version }}
+          
+          # Create CHANGELOG.md if it doesn't exist
+          if [ ! -f CHANGELOG.md ]; then
+            # Use quoted 'EOF' to prevent variable expansion in static header content
+            cat > CHANGELOG.md << 'EOF'
+          # Changelog
+          
+          All notable changes to this project will be documented in this file.
+          
+          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+          
+          ## [Unreleased]
+          EOF
+          fi
+          
+          # Create temporary file with new release entry
+          # Use unquoted EOF to allow variable expansion for VERSION and RELEASE_DATE
+          cat > new_entry.md << EOF
+          
+          ## [$VERSION] - $RELEASE_DATE
+          
+          EOF
+          
+          # Append the AI-generated release notes, ensuring the file exists and is non-empty
+          if [ -s release_notes_final.md ]; then
+            cat release_notes_final.md >> new_entry.md
+          else
+            echo "Error: release_notes_final.md is missing or empty. Aborting changelog update." >&2
+            exit 1
+          fi
+          
+          # Insert the new entry after the [Unreleased] section
+          # Find the line number of [Unreleased] and insert after it
+          if grep -q "## \[Unreleased\]" CHANGELOG.md; then
+            # Split the file at [Unreleased] section and insert new content
+            awk '/## \[Unreleased\]/{print; print ""; while ((getline line < "new_entry.md") > 0) print line; close("new_entry.md"); next}1' CHANGELOG.md > CHANGELOG.tmp
+            mv CHANGELOG.tmp CHANGELOG.md
+          else
+            # If no [Unreleased] section, just append to the file
+            cat new_entry.md >> CHANGELOG.md
+          fi
+          
+          # Clean up temporary file
+          rm -f new_entry.md
+          
+          echo "CHANGELOG.md updated with release $VERSION"
+      
+      - name: Check changelog changes (no commit on tag)
+        run: |
+          # This workflow is triggered by a pushed tag, so the tagged commit already exists.
+          # To avoid diverging branch history from the tag, we do NOT commit or push changes here.
+          # The changelog update is generated for informational purposes and will be included
+          # in future releases when the changelog update happens before tag creation.
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "No changes to CHANGELOG.md in the workspace."
+          else
+            echo "CHANGELOG.md was updated in the workspace for this release."
+            echo "To include changelog updates in tagged releases, update the CHANGELOG.md"
+            echo "before creating and pushing the version tag."
+          fi
       
       - name: Create release packages
         run: |

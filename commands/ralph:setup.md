@@ -1,23 +1,35 @@
 ---
-description: Guide users through creating a Ralph PRD with atomic, measurable tasks
-trigger: /ralph:setup
-arguments: [feature_description]
+description: Create or update a Ralph session from a spec/plan file (or feature description)
+trigger: /ralph:plan
+arguments: [plan-file]
 ---
 
-# Ralph Setup Assistant
+# Ralph Plan/Session Assistant
 
-Helps you create a PRD (prd.json) for the autonomous AI coding loop.
+Helps you create a PRD (prd.json) for the autonomous AI coding loop, optionally backed by a spec/plan file.
+
+**Aliases:** This command is also available as `/ralph:setup` for backward compatibility.
 
 ## Your Task
 
-User wants to: **$ARGUMENTS**
+User provided: **$ARGUMENTS**
 
-Guide them through creating a prd.json file with:
+### If $ARGUMENTS is a file path (e.g., `plans/my-feature.md`):
+1. Read the file using `@$ARGUMENTS` to include its contents
+2. Interview the user about any missing **non-obvious** details (don't ask for things already in the spec)
+3. Write the updated spec back to the same file (include all original content plus new clarifications)
+4. Generate/update the session PRD from the spec
+
+### If $ARGUMENTS is a feature description (not a file):
+Guide them through creating a prd.json file as before.
+
+### In both cases, create a prd.json file with:
 
 1. Atomic tasks (fit in one context window, 5-15 minutes each)
 2. Measurable acceptance criteria (objective, verifiable)
 3. Clear priority ordering (dependencies expressed via priority numbers)
 4. Appropriate validation commands for their project
+5. **Optional workflow selection** (e.g., `test-coverage` for coverage-improvement sessions)
 
 ---
 
@@ -166,7 +178,19 @@ Ask clarifying questions if needed:
 - AUTH-002 runs second (login form depends on context)
 - AUTH-003 runs third (logout button depends on context)
 
-## Step 5: Agent and Model Selection
+## Step 5: Workflow Selection (Optional)
+
+**Ask the user if they want to use a workflow:**
+
+- Options: none (default PRD-driven), `test-coverage`, or other workflows in `workflows/` directory
+- If `test-coverage` selected:
+  - Add `workflow: "test-coverage"` to prd.json
+  - Add `coverageCommand` field (required, e.g., `"pnpm test --coverage"`)
+  - Add `coverageTarget` field (default: 100, but ask user for their target %)
+  - Include a single long-lived story (e.g., `COV-000`) with acceptance criteria that enforce "one test per iteration" and "stop when target reached"
+  - Set `validationCommands.test` to the same `coverageCommand` so validation re-checks coverage
+
+## Step 6: Agent and Model Selection
 
 **Ask the user for their preferences:**
 
@@ -490,18 +514,20 @@ git log --oneline
 
 ## When to Use This Command
 
-Use `/ralph:setup` when you want to:
+Use `/ralph:plan` (or `/ralph:setup`) when you want to:
 
+- Create a Ralph session from a spec/plan file
 - Run Ralph on a new feature
 - Convert a vague idea into a structured PRD
 - Get help breaking down complex features
 - Ensure tasks are atomic and measurable
 - Set up proper validation commands
+- Use a workflow like `test-coverage`
 
 **Don't use** when you:
 
-- Already have a well-defined PRD
-- Just want to run Ralph (use `pnpm ralph` directly)
+- Already have a well-defined PRD and session created
+- Just want to run Ralph (use `./ralph.sh` directly)
 - Need to debug existing Ralph session
 
 ## After PRD Creation

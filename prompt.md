@@ -46,7 +46,7 @@ The session directory path is provided in the "Session Context" section above. A
     # Also stage any AGENTS.md files you updated
     git add <path-to-AGENTS.md-files>
     ```
-13. Commit with format: `feat: [ID] - [Title]`
+13. Commit with format: `feat: [ID] - [Title]` (or `test: [ID] - [Title]` for test-only commits)
     - MUST include session files (prd.json, learnings.md, progress.txt)
     - MUST include all implementation changes
     - MUST include AGENTS.md files if updated

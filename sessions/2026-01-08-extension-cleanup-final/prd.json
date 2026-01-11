@@ -1,0 +1,759 @@
+{
+    "branchName": "ralph/extension-cleanup-final",
+    "agent": "cursor",
+    "model": "gemini-3-flash",
+    "validationCommands": {
+        "typecheck": "pnpm --filter chrome_extension_next typecheck",
+        "lint": "pnpm --filter chrome_extension_next lint",
+        "build": "pnpm --filter chrome_extension_next build",
+        "test": "pnpm --filter chrome_extension_next test"
+    },
+    "userStories": [
+        {
+            "id": "LLM-001",
+            "title": "Migrate TwinMindProvider request utilities",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/domains/llm/providers/twinmind/request-utils.ts",
+                "Function signature: export async function makeRequest<T>(endpoint: string, request: unknown, deps: RequestDeps): Promise<T>",
+                "Function signature: export async function makeFormDataRequest<T>(endpoint: string, formData: FormData, deps: RequestDeps): Promise<T>",
+                "Function signature: export function formatLocalTime(): string",
+                "RequestDeps type exported with: config, getHeaders, retry, handleError",
+                "Uses @twinmind/logger for logging",
+                "Handles HTTP errors with proper error messages",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "No TODO/FIXME comments in file"
+            ],
+            "priority": 1,
+            "passes": true,
+            "notes": "Copy from apps/chrome_extension/src/shared/core/llm/providers/twinmind/request-utils.ts. Adapt imports to use @/ aliases."
+        },
+        {
+            "id": "LLM-002",
+            "title": "Migrate TwinMindProvider streaming utilities",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/domains/llm/providers/twinmind/streaming.ts",
+                "Function signature: export async function* makeStreamRequest<T>(endpoint: string, request: unknown, deps: RequestDeps, options?: { signal?: AbortSignal }): AsyncGenerator<T, void, unknown>",
+                "Function signature: export async function* makeSummaryStreamRequest(endpoint: string, request: unknown, deps: RequestDeps): AsyncGenerator<Summary, void, unknown>",
+                "Properly parses SSE 'data:' lines",
+                "Handles '[DONE]' SSE termination signal",
+                "Supports AbortSignal for cancellation",
+                "Uses TextDecoder for stream reading",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "No TODO/FIXME comments in file"
+            ],
+            "priority": 2,
+            "passes": true,
+            "notes": "Copy from apps/chrome_extension/src/shared/core/llm/providers/twinmind/streaming.ts. Handle SSE parsing correctly."
+        },
+        {
+            "id": "LLM-003",
+            "title": "Migrate TwinMindProvider parsing utilities",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/domains/llm/providers/twinmind/parsing.ts",
+                "Function signature: export function parseV2Response(response: unknown): SuggestionResponse",
+                "Function signature: export function parseSuggestionString(text: string): ParsedSuggestion",
+                "Function signature: export function extractEmoji(text: string): string",
+                "Function signature: export function cleanSuggestionText(text: string): string",
+                "ParsedSuggestion type has: emoji, title, prompt",
+                "extractEmoji returns '💡' as default when no emoji found",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "No TODO/FIXME comments in file"
+            ],
+            "priority": 3,
+            "passes": true,
+            "notes": "Copy from apps/chrome_extension/src/shared/core/llm/providers/twinmind/parsing.ts"
+        },
+        {
+            "id": "LLM-004",
+            "title": "Create TwinMindProvider barrel export",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/domains/llm/providers/twinmind/index.ts",
+                "Exports TwinMindProvider class",
+                "Re-exports makeRequest, makeFormDataRequest, formatLocalTime from request-utils",
+                "Re-exports makeStreamRequest, makeSummaryStreamRequest from streaming",
+                "Re-exports parsing utilities",
+                "File exists: apps/chrome_extension_next/src/domains/llm/providers/twinmind/types.ts with RequestDeps, ParsedSuggestion",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 4,
+            "passes": true,
+            "notes": "Create barrel file to organize twinmind module exports"
+        },
+        {
+            "id": "LLM-005",
+            "title": "Complete TwinMindProvider implementation",
+            "acceptanceCriteria": [
+                "twin-mind-provider.ts imports utilities from ./twinmind/",
+                "chat() method calls makeRequest with ENDPOINTS.chat",
+                "chatStream() method calls makeStreamRequest, yields ChatChunk objects",
+                "summary() method calls makeRequest with ENDPOINTS.summary",
+                "summaryStream() method calls makeSummaryStreamRequest",
+                "suggestions() method calls makeRequest with ENDPOINTS.suggestions",
+                "liveSuggestionsV2() method calls makeFormDataRequest, handles audio file",
+                "All methods use getRequestDeps() for dependencies",
+                "grep -c 'TODO' twin-mind-provider.ts returns 0",
+                "grep -c 'throw new Error.*not yet implemented' twin-mind-provider.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "build passes: pnpm --filter chrome_extension_next build"
+            ],
+            "priority": 5,
+            "passes": true,
+            "notes": "Wire up the provider to use the migrated utilities. Remove all stub implementations."
+        },
+        {
+            "id": "LLM-006",
+            "title": "Complete WhisperProvider implementation",
+            "acceptanceCriteria": [
+                "whisper-provider.ts transcribe() accepts TranscriptionRequest with audio: File",
+                "transcribe() creates FormData with audio file and model parameter",
+                "transcribe() calls OpenAI Whisper API endpoint",
+                "transcribe() returns TranscriptionResponse with text field",
+                "makeRequest() implemented for Whisper API calls",
+                "grep -c 'TODO' whisper-provider.ts returns 0",
+                "grep -c 'throw new Error.*not yet implemented' whisper-provider.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 6,
+            "passes": true,
+            "notes": "Reference legacy: apps/chrome_extension/src/shared/core/llm/providers/whisper-provider.ts"
+        },
+        {
+            "id": "LLM-007",
+            "title": "Complete OpenAIProvider implementation",
+            "acceptanceCriteria": [
+                "open-ai-provider.ts validateApiKey() makes test API call",
+                "validateApiKey() returns boolean indicating validity",
+                "validateApiKey() catches and handles API errors gracefully",
+                "grep -c 'TODO' open-ai-provider.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 7,
+            "passes": true,
+            "notes": "Reference legacy: apps/chrome_extension/src/shared/core/llm/providers/open-ai-provider.ts"
+        },
+        {
+            "id": "LLM-008",
+            "title": "Add LLM provider unit tests",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/domains/llm/providers/__tests__/twin-mind-provider.test.ts",
+                "Tests TwinMindProvider.chat() with mocked fetch",
+                "Tests TwinMindProvider.chatStream() yields correct chunks",
+                "Tests TwinMindProvider.suggestions() parses response correctly",
+                "Tests parsing.ts extractEmoji() with various inputs",
+                "Tests parsing.ts cleanSuggestionText() removes emojis and normalizes whitespace",
+                "All tests pass: pnpm --filter chrome_extension_next test -- twin-mind-provider",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 8,
+            "passes": true,
+            "notes": "Use vitest with vi.mock for fetch. Test edge cases."
+        },
+        {
+            "id": "LLM-009",
+            "title": "Analyze and refactor LLM provider classes to functional pattern",
+            "acceptanceCriteria": [
+                "ANALYSIS: Examine TwinMindProvider, OpenAIProvider, WhisperProvider in apps/chrome_extension_next/src/domains/llm/providers/",
+                "ANALYSIS: Document whether each provider holds mutable state or only configuration",
+                "ANALYSIS: Check if providers extend BaseProvider and what BaseProvider provides",
+                "IF STATELESS: Refactor TwinMindProvider to module functions (like llm-service.ts pattern)",
+                "IF STATELESS: Refactor OpenAIProvider to module functions",
+                "IF STATELESS: Refactor WhisperProvider to module functions",
+                "IF STATELESS: No 'class TwinMindProvider', 'class OpenAIProvider', 'class WhisperProvider' in codebase",
+                "IF STATELESS: Export functions: twinMindChat, twinMindChatStream, twinMindSummary, twinMindSuggestions, etc.",
+                "IF STATELESS: Update all imports in llm-service.ts and other consumers",
+                "IF STATEFUL (genuinely requires instances): Add JSDoc comment at class level explaining WHY class is needed",
+                "IF STATEFUL: JSDoc must reference 'functional-over-class architectural rule' and justify exception",
+                "IF STATEFUL: Example justification: 'Class required because instance holds WebSocket connection state that must persist across method calls'",
+                "BaseProvider class: Either refactor to utility functions OR add JSDoc justifying class inheritance pattern",
+                "grep -c 'class.*Provider' providers/*.ts returns 0 (if refactored) OR all remaining classes have JSDoc justification",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "build passes: pnpm --filter chrome_extension_next build",
+                "All existing LLM tests still pass: pnpm --filter chrome_extension_next test -- llm"
+            ],
+            "priority": 9,
+            "passes": true,
+            "notes": "Per functional-over-class architectural rule: If providers are stateless or only hold configuration, refactor to module functions. If they genuinely require stateful instances (e.g., WebSocket connections, streaming state), add JSDoc comments justifying the class usage. Reference llm-service.ts as the target functional pattern."
+        },
+        {
+            "id": "AUDIO-001",
+            "title": "Create capture-audio module structure and types",
+            "acceptanceCriteria": [
+                "Directory exists: apps/chrome_extension_next/src/lib/utils/capture-audio/",
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/index.ts",
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/types.ts",
+                "types.ts exports RecorderState interface with: chunks, segmentStartTime, recordingStartTime, stopRecord, intervalId, firstFlushTimer, hasSpeech, stopDetectSpeech, recorderCount, activeRecorderId",
+                "types.ts exports ShadowRecorderState interface with: recorder, chunks, isRecording",
+                "types.ts exports CaptureAudioParams interface with: stream, audioCtx, onAudio, existingContent",
+                "types.ts exports AudioFormat type",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 10,
+            "passes": true,
+            "notes": "Create modular structure matching legacy: apps/chrome_extension/src/shared/lib/capture-audio/capture/"
+        },
+        {
+            "id": "AUDIO-002",
+            "title": "Migrate audio-processing.ts",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/audio-processing.ts",
+                "Function signature: export function initializeMainRecorder(state: RecorderState, stream: MediaStream, audioCtx: AudioContext): void",
+                "Function signature: export async function performOverlappingHandoff(state: RecorderState, shadowState: ShadowRecorderState, stream: MediaStream, audioCtx: AudioContext, onAudio: OnAudioCallback): Promise<void>",
+                "Function signature: export function stopSpeechDetection(state: RecorderState): void",
+                "Function signature: export async function releaseAudio(state: RecorderState, shadowState: ShadowRecorderState, onAudio: OnAudioCallback): Promise<void>",
+                "performOverlappingHandoff creates new recorder BEFORE stopping old one (3s overlap)",
+                "Uses MediaRecorder API correctly",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "No TODO/FIXME comments in file"
+            ],
+            "priority": 11,
+            "passes": true,
+            "notes": "Copy from legacy audio-processing.ts, adapt imports. Critical: overlapping handoff prevents audio gaps."
+        },
+        {
+            "id": "AUDIO-003",
+            "title": "Migrate shadow-recorder.ts",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/shadow-recorder.ts",
+                "Function signature: export function createShadowRecorderState(stream: MediaStream): ShadowRecorderState",
+                "Function signature: export function initializeShadowRecorder(state: ShadowRecorderState): void",
+                "Function signature: export function stopShadowRecorder(state: ShadowRecorderState): void",
+                "Function signature: export function selectAudioFormat(): AudioFormat",
+                "selectAudioFormat() returns 'audio/webm' or 'audio/mp4' based on browser support",
+                "Shadow recorder is completely isolated from main flow",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "No TODO/FIXME comments in file"
+            ],
+            "priority": 12,
+            "passes": true,
+            "notes": "Copy from legacy shadow-recorder.ts. Shadow recorder allows manual refresh."
+        },
+        {
+            "id": "AUDIO-004",
+            "title": "Migrate queue.ts and message-handlers.ts",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/queue.ts",
+                "Function signature: export function withQueue<T>(fn: () => Promise<T>): Promise<T>",
+                "withQueue ensures sequential processing of async operations",
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/message-handlers.ts",
+                "Function signature: export function createMessageListener(shadowState: ShadowRecorderState, performHandoff: () => Promise<void>): MessageListener",
+                "Function signature: export async function handleGetCapturedAudio(shadowState: ShadowRecorderState, sendResponse: SendResponseFn): Promise<void>",
+                "Handles MessageType.TRIGGER_TRANSCRIPT message",
+                "Handles 'getCapturedAudio' message",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "No TODO/FIXME comments in files"
+            ],
+            "priority": 13,
+            "passes": true,
+            "notes": "Copy from legacy queue.ts and message-handlers.ts"
+        },
+        {
+            "id": "AUDIO-005",
+            "title": "Complete capture-audio main function",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/capture-audio.ts",
+                "Function signature: export function captureAudio(params: CaptureAudioParams): () => void",
+                "captureAudio initializes RecorderState with all required fields",
+                "captureAudio creates shadow recorder state and initializes it",
+                "captureAudio initializes main recorder",
+                "captureAudio sets up message listener with MessageBus.listen()",
+                "captureAudio schedules first flush after 5 seconds, then every 30 seconds",
+                "Return cleanup function stops all recorders, clears timers, unsubscribes listener",
+                "apps/chrome_extension_next/src/lib/utils/capture-audio.ts re-exports from ./capture-audio/",
+                "grep -c 'TODO' apps/chrome_extension_next/src/lib/utils/capture-audio.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "build passes: pnpm --filter chrome_extension_next build"
+            ],
+            "priority": 14,
+            "passes": true,
+            "notes": "Wire up all components. Update the stub file to export from the new module."
+        },
+        {
+            "id": "AUDIO-006",
+            "title": "Add capture-audio unit tests",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/lib/utils/capture-audio/__tests__/capture-audio.test.ts",
+                "Tests captureAudio returns cleanup function",
+                "Tests cleanup function stops recorders",
+                "Tests withQueue processes sequentially",
+                "Tests selectAudioFormat returns valid MIME type",
+                "Mocks MediaRecorder, AudioContext, MessageBus",
+                "All tests pass: pnpm --filter chrome_extension_next test -- capture-audio",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 15,
+            "passes": true,
+            "notes": "Mock browser APIs. Test cleanup behavior."
+        },
+        {
+            "id": "CHAT-001",
+            "title": "Migrate crypto-utils.ts",
+            "acceptanceCriteria": [
+                "apps/chrome_extension_next/src/infrastructure/storage/utils/crypto-utils.ts has full implementation",
+                "Function signature: export async function encrypt(data: string, key: string): Promise<string>",
+                "Function signature: export async function decrypt(encryptedData: string, key: string): Promise<string>",
+                "Uses Web Crypto API (crypto.subtle)",
+                "Encryption uses AES-GCM algorithm",
+                "Returns base64 encoded string from encrypt()",
+                "decrypt() reverses encrypt() correctly",
+                "grep -c 'TODO' crypto-utils.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 16,
+            "passes": true,
+            "notes": "Reference legacy: apps/chrome_extension/src/shared/lib/crypto-utils/. Use Web Crypto API."
+        },
+        {
+            "id": "CHAT-002",
+            "title": "Complete fetch-answer.ts implementation",
+            "acceptanceCriteria": [
+                "apps/chrome_extension_next/src/domains/chat/utils/fetch-answer.ts exports fetchAnswer function",
+                "Function signature: export async function* fetchAnswer(params: FetchAnswerParams): AsyncGenerator<string, void, unknown>",
+                "FetchAnswerParams includes: question, meetingId, memories, signal",
+                "Uses SSE streaming with proper 'data:' line parsing",
+                "Handles '[DONE]' termination signal",
+                "Supports AbortSignal for cancellation",
+                "Uses encrypt() from crypto-utils for sensitive data",
+                "Calls correct API endpoint with proper headers",
+                "grep -c 'TODO' fetch-answer.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 17,
+            "passes": true,
+            "notes": "Reference legacy: apps/chrome_extension/src/shared/core/api/fetch-answer.ts"
+        },
+        {
+            "id": "CHAT-003",
+            "title": "Complete use-chat-service-stream.ts hook",
+            "acceptanceCriteria": [
+                "apps/chrome_extension_next/src/ui/hooks/use-chat-service-stream.ts imports fetchAnswer",
+                "Hook returns: streamChat, isStreaming, error, abortStream",
+                "streamChat() calls fetchAnswer() and yields chunks to callback",
+                "isStreaming state updates correctly during stream",
+                "abortStream() cancels ongoing stream via AbortController",
+                "error state captures and exposes streaming errors",
+                "Cleanup on unmount aborts any active stream",
+                "grep -c 'TODO' use-chat-service-stream.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 18,
+            "passes": true,
+            "notes": "Wire up the hook to use the completed fetch-answer implementation"
+        },
+        {
+            "id": "CHAT-004",
+            "title": "Add chat streaming unit tests",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/domains/chat/utils/__tests__/fetch-answer.test.ts",
+                "Tests fetchAnswer yields chunks correctly",
+                "Tests fetchAnswer handles abort signal",
+                "Tests fetchAnswer handles API errors",
+                "File exists: apps/chrome_extension_next/src/ui/hooks/__tests__/use-chat-service-stream.test.ts",
+                "Tests hook streaming state transitions",
+                "Tests hook abort functionality",
+                "All tests pass: pnpm --filter chrome_extension_next test -- fetch-answer",
+                "All tests pass: pnpm --filter chrome_extension_next test -- use-chat-service-stream"
+            ],
+            "priority": 19,
+            "passes": true,
+            "notes": "Mock fetch with SSE responses. Test abort scenarios."
+        },
+        {
+            "id": "UI-001",
+            "title": "Complete use-memories-query.ts",
+            "acceptanceCriteria": [
+                "apps/chrome_extension_next/src/ui/queries/memories/use-memories-query.ts imports from @/domains/memory",
+                "Imports: getAllMemories, getMemoryById from memory-service",
+                "useMemoriesQuery() calls getAllMemories() in queryFn",
+                "useMemoryQuery(meetingId) calls getMemoryById() in queryFn",
+                "Uses queryKeys.memories for cache key",
+                "Proper staleTime and gcTime configuration",
+                "grep -c 'TODO' use-memories-query.ts returns 0",
+                "grep -c 'Stub implementation' use-memories-query.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 20,
+            "passes": true,
+            "notes": "Memory service is already implemented. Just wire up the hook."
+        },
+        {
+            "id": "UI-002",
+            "title": "Complete use-suggestions-data.ts",
+            "acceptanceCriteria": [
+                "apps/chrome_extension_next/src/ui/queries/memories/use-suggestions-data.ts imports from @/domains/memory",
+                "Uses getDisplayableMemories or getAllMemories from memory-service",
+                "Filters memories appropriately for suggestions context",
+                "grep -c 'TODO' use-suggestions-data.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 21,
+            "passes": true,
+            "notes": "Use getDisplayableMemories or equivalent from memory-service"
+        },
+        {
+            "id": "UI-003",
+            "title": "Complete use-recording-control.ts",
+            "acceptanceCriteria": [
+                "apps/chrome_extension_next/src/ui/hooks/use-recording-control.ts imports MessageBus, MessageType",
+                "startRecording() sends MessageType.START_RECORDING via MessageBus",
+                "stopRecording() sends MessageType.STOP_RECORDING via MessageBus",
+                "toggleRecording() checks isRecording state and calls appropriate function",
+                "Hook tracks isRecording state from store or RPC response",
+                "grep -c 'TODO' use-recording-control.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 22,
+            "passes": true,
+            "notes": "Wire up to recording orchestrator via MessageBus RPC"
+        },
+        {
+            "id": "UI-004",
+            "title": "Complete UI component integrations",
+            "acceptanceCriteria": [
+                "ModelSelectorQuery.tsx: grep -c 'TODO' returns 0",
+                "ModelSelectorQuery.tsx: Uses useQuery for model fetching or connects to settings",
+                "AudioControls.tsx: grep -c 'TODO' returns 0",
+                "AudioControls.tsx: Connects to recording store for audio state",
+                "SettingsPanel.tsx: grep -c 'TODO' returns 0",
+                "SettingsPanel.tsx: Uses API client for settings persistence",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 23,
+            "passes": true,
+            "notes": "Wire up remaining UI components with their services"
+        },
+        {
+            "id": "AUTH-001",
+            "title": "Create auth integration module for background",
+            "acceptanceCriteria": [
+                "File exists: apps/chrome_extension_next/src/background/auth-integration.ts",
+                "Function signature: export function getAuthManager(): AuthManager",
+                "Function signature: export async function isAuthenticated(): Promise<boolean>",
+                "Function signature: export async function refreshAccessTokenWithRetry(): Promise<boolean>",
+                "Function signature: export function resetAuthState(): void",
+                "isAuthenticated() checks token validity via auth manager",
+                "refreshAccessTokenWithRetry() implements retry logic with exponential backoff",
+                "resetAuthState() clears all auth-related storage",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 24,
+            "passes": true,
+            "notes": "Create wrapper functions that use the auth manager from domains/auth"
+        },
+        {
+            "id": "AUTH-002",
+            "title": "Integrate auth in background/index.ts",
+            "acceptanceCriteria": [
+                "background/index.ts imports from ./auth-integration",
+                "recordingOrchestrator isAuthenticated callback uses auth-integration.isAuthenticated()",
+                "calendarOrchestrator isAuthenticated callback uses auth-integration.isAuthenticated()",
+                "registerCommandHandlers isAuthenticated uses auth-integration.isAuthenticated()",
+                "registerLifecycleHandlers refreshAccessTokenWithRetry uses auth-integration.refreshAccessTokenWithRetry()",
+                "registerLifecycleHandlers resetAuthState uses auth-integration.resetAuthState()",
+                "registerAlarmHandlers isAuthenticated uses auth-integration.isAuthenticated()",
+                "registerAlarmHandlers refreshAccessTokenWithRetry uses auth-integration.refreshAccessTokenWithRetry()",
+                "grep -c 'TODO: Use auth manager' background/index.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "build passes: pnpm --filter chrome_extension_next build"
+            ],
+            "priority": 25,
+            "passes": true,
+            "notes": "Use the auth-integration module created in AUTH-001"
+        },
+        {
+            "id": "AUTH-003",
+            "title": "Complete recording triggers and cleanup",
+            "acceptanceCriteria": [
+                "background/index.ts registerRecordingTriggers callback imports from @/domains/recording",
+                "registerRecordingTriggers calls registerRecordingTriggers() from recording domain",
+                "cleanupTabRecordState callback calls cleanupTabRecordState() from @/infrastructure/session",
+                "grep -c 'TODO: Register recording triggers' background/index.ts returns 0",
+                "grep -c 'TODO: Implement cleanup' background/index.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 26,
+            "passes": true,
+            "notes": "Wire up to domains/recording/recording-triggers.ts"
+        },
+        {
+            "id": "CONTENT-001",
+            "title": "Complete content script message handlers",
+            "acceptanceCriteria": [
+                "content/message-handlers.ts: MessageType.SIDEPANEL_OPENED handler logs and updates UI state",
+                "content/message-handlers.ts: MessageType.HIDE_MODALS handler hides any visible modals",
+                "content/message-handlers.ts: MessageType.TOGGLE_WHISPER_FLOW handler toggles whisper flow visibility",
+                "content/message-handlers.ts: MessageType.CHECK_GOOGLE_MEET handler returns boolean for Meet detection",
+                "All handlers call sendResponse() with appropriate response",
+                "grep -c 'TODO: Handle' content/message-handlers.ts returns 0",
+                "grep -c 'TODO: Hide' content/message-handlers.ts returns 0",
+                "grep -c 'TODO: Implement' content/message-handlers.ts returns 0",
+                "grep -c 'TODO: Check' content/message-handlers.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 27,
+            "passes": true,
+            "notes": "Implement the placeholder message handlers"
+        },
+        {
+            "id": "CONTENT-002",
+            "title": "Complete floating button injection",
+            "acceptanceCriteria": [
+                "content/floating-button.ts: injectFloatingButton() creates DOM element",
+                "content/floating-button.ts: Button has correct CSS classes and positioning",
+                "content/floating-button.ts: Button click handler sends message to background",
+                "content/floating-button.ts: updateTMButtonVisibility() shows/hides based on recording state",
+                "grep -c 'TODO: Inject' floating-button.ts returns 0",
+                "grep -c 'TODO: Implement' floating-button.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 28,
+            "passes": true,
+            "notes": "Implement button injection. Reference legacy floating-button implementation."
+        },
+        {
+            "id": "CONTENT-003",
+            "title": "Complete content script index.ts",
+            "acceptanceCriteria": [
+                "content/index.ts: onShowModal callback creates and shows meeting detection modal",
+                "content/index.ts: WhisperFlow service initialization (or documented as not needed)",
+                "content/index.ts: Screenshot capture handler registered (or documented as not needed)",
+                "content/index.ts: Audio input device handlers set up (or documented as not needed)",
+                "grep -c 'TODO: Show modal' content/index.ts returns 0",
+                "grep -c 'TODO: Initialize WhisperFlow' content/index.ts returns 0",
+                "grep -c 'TODO: Register screenshot' content/index.ts returns 0",
+                "grep -c 'TODO: Set up audio' content/index.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 29,
+            "passes": true,
+            "notes": "Wire up remaining content script initialization. Some TODOs may be removed if not needed."
+        },
+        {
+            "id": "CONTENT-004",
+            "title": "Complete observers.ts",
+            "acceptanceCriteria": [
+                "content/observers.ts: detectMicrophoneUsage() checks for active audio tracks",
+                "content/observers.ts: detectMeeting() uses platform detection utilities",
+                "content/observers.ts: MutationObserver watches for meeting UI changes",
+                "content/observers.ts: Periodic check interval (e.g., every 5 seconds)",
+                "content/observers.ts: initializeMeetingObserver returns cleanup function",
+                "grep -c 'TODO: Implement' observers.ts returns 0",
+                "grep -c 'TODO: Set up' observers.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 30,
+            "passes": true,
+            "notes": "Implement DOM observers and detection logic"
+        },
+        {
+            "id": "INFRA-001",
+            "title": "Complete infrastructure storage constants",
+            "acceptanceCriteria": [
+                "infrastructure/storage/constants/storage-keys.ts has all keys from legacy",
+                "Includes: AUTH_TOKEN, REFRESH_TOKEN, USER_ID, CACHED_SUMMARIES, RECORDING_STATE, etc.",
+                "All keys are typed as const",
+                "grep -c 'TODO' storage-keys.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 31,
+            "passes": true,
+            "notes": "Compare with legacy and add any missing keys"
+        },
+        {
+            "id": "INFRA-002",
+            "title": "Complete chrome-services.ts",
+            "acceptanceCriteria": [
+                "infrastructure/services/chrome-services.ts exports all required services",
+                "Exports: storageService, tabsService, notificationsService, actionService, sidePanelService",
+                "Each service wraps Chrome API with proper typing",
+                "grep -c 'TODO' chrome-services.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 32,
+            "passes": true,
+            "notes": "Verify all services are properly implemented"
+        },
+        {
+            "id": "INFRA-003",
+            "title": "Complete message-bus.ts",
+            "acceptanceCriteria": [
+                "infrastructure/messaging/message-bus.ts: MessageBus.send() uses chrome.runtime.sendMessage",
+                "infrastructure/messaging/message-bus.ts: MessageBus.listen() uses chrome.runtime.onMessage.addListener",
+                "infrastructure/messaging/message-bus.ts: Proper TypeScript generics for message types",
+                "grep -c 'TODO' message-bus.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 33,
+            "passes": true,
+            "notes": "Verify MessageBus implementation is complete"
+        },
+        {
+            "id": "INFRA-004",
+            "title": "Complete infrastructure utils",
+            "acceptanceCriteria": [
+                "infrastructure/storage/utils/time.ts: grep -c 'TODO' returns 0",
+                "infrastructure/storage/utils/time.ts: formatDuration, formatDate functions implemented",
+                "infrastructure/rpc/types.ts: grep -c 'TODO' returns 0",
+                "infrastructure/rpc/types.ts: All RPC types defined",
+                "infrastructure/db/types.ts: grep -c 'TODO' returns 0",
+                "infrastructure/db/types.ts: RecordType, DBRecord types defined",
+                "infrastructure/db/local-db-queries.ts: grep -c 'TODO' returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 34,
+            "passes": true,
+            "notes": "Migrate remaining infrastructure utilities"
+        },
+        {
+            "id": "REFACTOR-001",
+            "title": "Refactor SuggestionsService to functional",
+            "acceptanceCriteria": [
+                "domains/suggestions/suggestions-service.ts: No 'class SuggestionsService'",
+                "Exports module functions: configureSuggestions, fetchFromTranscript",
+                "Module-level state: let isConfigured, lastFetchTime, fetchInProgress, consecutiveFailures, backoffUntil",
+                "configureSuggestions() sets module-level config",
+                "fetchFromTranscript() uses module-level state for throttling",
+                "All imports updated in: suggestions-orchestrator.ts, suggestions-handlers.ts",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "build passes: pnpm --filter chrome_extension_next build"
+            ],
+            "priority": 35,
+            "passes": true,
+            "notes": "Convert class to functional pattern matching memory-service"
+        },
+        {
+            "id": "REFACTOR-002",
+            "title": "Refactor CalendarManager to functional",
+            "acceptanceCriteria": [
+                "domains/calendar/calendar-manager.ts: No 'class CalendarManager'",
+                "Exports module functions: initializeCalendar, setCalendarNotifier, checkCalendarEvents, handleCalendarAlarm",
+                "Module-level state: let state: CalendarState, notifier: NotifierFn | null",
+                "initializeCalendar() sets up alarms and listeners",
+                "All imports updated in: background/index.ts, background/calendar-orchestrator.ts",
+                "domains/calendar/index.ts exports functions instead of calendarManager instance",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "build passes: pnpm --filter chrome_extension_next build"
+            ],
+            "priority": 36,
+            "passes": true,
+            "notes": "Convert class to functional pattern"
+        },
+        {
+            "id": "REFACTOR-003",
+            "title": "Refactor ZoomUrlService to functional",
+            "acceptanceCriteria": [
+                "domains/zoom/zoom-url-service.ts: No 'class ZoomUrlService'",
+                "Exports: createZoomUrlHandler(options) factory function OR individual functions",
+                "Functions: isZoomUrl, transformZoomUrl, extractMeetingInfo",
+                "All imports updated in: background/index.ts, background/lifecycle.ts",
+                "domains/zoom/index.ts exports functions",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 37,
+            "passes": true,
+            "notes": "Convert class to functional pattern"
+        },
+        {
+            "id": "REFACTOR-004",
+            "title": "Refactor ContentAudioTranscriber to functional",
+            "acceptanceCriteria": [
+                "content/audio-transcriber.ts: No 'class ContentAudioTranscriber'",
+                "Exports: createAudioTranscriber(options) factory OR individual functions",
+                "Functions: startTranscription, stopTranscription, getTranscript",
+                "Module-level or closure-based state management",
+                "All imports updated in content scripts",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 38,
+            "passes": true,
+            "notes": "Convert class to functional pattern"
+        },
+        {
+            "id": "CALENDAR-001",
+            "title": "Complete calendar auth check",
+            "acceptanceCriteria": [
+                "domains/calendar/fetching/fetch-events.ts: checkAuthentication() imports from @/domains/auth",
+                "checkAuthentication() calls auth manager to verify token",
+                "checkAuthentication() returns boolean",
+                "grep -c 'TODO: Migrate isAuthenticated' fetch-events.ts returns 0",
+                "grep -c 'TODO: Implement proper auth' fetch-events.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 39,
+            "passes": true,
+            "notes": "Import and use auth functions from auth domain"
+        },
+        {
+            "id": "CALENDAR-002",
+            "title": "Complete calendar notifier registration",
+            "acceptanceCriteria": [
+                "background/calendar-orchestrator.ts: registerCalendarNotifier() implemented",
+                "Notifier function sends notifications to content script",
+                "grep -c 'TODO: Register calendar notifier' calendar-orchestrator.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 40,
+            "passes": true,
+            "notes": "Register calendar notifier for meeting notifications"
+        },
+        {
+            "id": "MISC-001",
+            "title": "Complete personalization fetching",
+            "acceptanceCriteria": [
+                "lib/utils/fetch-personalization.ts: fetchPersonalizationFromDexie() queries IndexedDB",
+                "lib/utils/fetch-personalization.ts: fetchPersonalizationFromAPI() calls backend API",
+                "lib/utils/fetch-personalization.ts: personalizationFetcher object with both methods",
+                "Returns PersonalizationData with user_generated field",
+                "grep -c 'TODO' fetch-personalization.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 41,
+            "passes": true,
+            "notes": "Implement full personalization fetching logic"
+        },
+        {
+            "id": "MISC-002",
+            "title": "Complete meeper transcription cache",
+            "acceptanceCriteria": [
+                "domains/meeper/transcription.ts: cacheRecording() implemented OR TODO removed with justification",
+                "If implemented: stores recording data in IndexedDB",
+                "If not needed: TODO comment removed, function is no-op or deleted",
+                "grep -c 'TODO: Migrate cache-recording' transcription.ts returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck"
+            ],
+            "priority": 42,
+            "passes": true,
+            "notes": "Migrate cache-recording utility if needed, or remove TODO"
+        },
+        {
+            "id": "VERIFY-001",
+            "title": "Final TODO scan and cleanup",
+            "acceptanceCriteria": [
+                "grep -r 'TODO:' apps/chrome_extension_next/src --include='*.ts' --include='*.tsx' | wc -l returns 0",
+                "grep -r 'FIXME:' apps/chrome_extension_next/src --include='*.ts' --include='*.tsx' | wc -l returns 0",
+                "grep -r 'HACK:' apps/chrome_extension_next/src --include='*.ts' --include='*.tsx' | wc -l returns 0",
+                "grep -r 'not yet implemented' apps/chrome_extension_next/src --include='*.ts' --include='*.tsx' | wc -l returns 0",
+                "grep -r 'Stub implementation' apps/chrome_extension_next/src --include='*.ts' --include='*.tsx' | wc -l returns 0",
+                "typecheck passes: pnpm --filter chrome_extension_next typecheck",
+                "lint passes: pnpm --filter chrome_extension_next lint",
+                "build passes: pnpm --filter chrome_extension_next build"
+            ],
+            "priority": 43,
+            "passes": true,
+            "notes": "Comprehensive scan for any remaining TODOs, stubs, or unimplemented code"
+        },
+        {
+            "id": "VERIFY-002",
+            "title": "Run full test suite and verify",
+            "acceptanceCriteria": [
+                "pnpm --filter chrome_extension_next test exits with code 0",
+                "All test files pass (no failures)",
+                "Test coverage report generated",
+                "No console errors during test run",
+                "Extension loads in Chrome without errors (manual verification note in progress.txt)"
+            ],
+            "priority": 44,
+            "passes": true,
+            "notes": "Run full test suite to verify everything works. Document manual verification."
+        }
+    ]
+}

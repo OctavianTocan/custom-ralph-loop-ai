@@ -1,0 +1,51 @@
+{
+  "branchName": "ralph/playwright-persistent-profile",
+  "agent": "cursor",
+  "model": "composer-1",
+  "validationCommands": {
+    "typecheck": "pnpm typecheck"
+  },
+  "userStories": [
+    {
+      "id": "E2E-001",
+      "title": "Install Playwright & Create Launch Script",
+      "acceptanceCriteria": [
+        "Playwright installed via pnpm",
+        "tools/start-test-browser.sh created",
+        "Script is executable",
+        "Script uses --remote-debugging-port=9222",
+        "Script uses persistent --user-data-dir"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Follow ExecPlan Phase 1"
+    },
+    {
+      "id": "E2E-002",
+      "title": "Configure Playwright for CDP",
+      "acceptanceCriteria": [
+        "e2e/playwright.config.ts created",
+        "Config sets workers to 1",
+        "Custom fixture created (e.g., in e2e/fixtures.ts or inline)",
+        "Fixture uses chromium.connectOverCDP('http://localhost:9222')",
+        "Fixture manages page context correctly without closing browser"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Follow ExecPlan Phase 2 & 4"
+    },
+    {
+      "id": "E2E-003",
+      "title": "Create Smoke Test",
+      "acceptanceCriteria": [
+        "e2e/specs/profile.spec.ts created",
+        "Test imports custom fixture",
+        "Test performs a simple visibility assertion",
+        "Code compiles/lints correctly"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Do not attempt to run the test in CI, as it requires the manual browser instance."
+    }
+  ]
+}

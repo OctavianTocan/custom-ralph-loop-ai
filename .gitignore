@@ -1,0 +1,9 @@
+# Ralph session files (keep structure, ignore content)
+sessions/*/ralph.log
+sessions/*/.ralph.lock
+
+# Keep session directories but ignore temporary files
+sessions/**/.ralph.lock
+
+# Don't ignore session structure
+!sessions/.gitkeep

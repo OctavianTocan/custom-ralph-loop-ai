@@ -1,0 +1,19 @@
+# Test Prompt for Cursor Runner
+
+This is a test prompt to verify the Cursor runner is working correctly.
+
+## Task
+
+1. Read the session directory: .claude/ralph/test-session
+2. Check if prd.json exists and has tasks
+3. If tasks exist with passes: false, implement them
+4. If no tasks or all tasks pass, respond with: "Test successful - Cursor runner is working"
+
+## Expected Response
+
+If this prompt is processed correctly, you should see:
+- Acknowledgment that the prompt was received
+- Status of the test session
+- Confirmation that the runner is functional
+
+<promise>TEST_SUCCESS</promise>

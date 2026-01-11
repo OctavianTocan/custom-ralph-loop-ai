@@ -1,0 +1,616 @@
+{
+  "branchName": "ralph/extension-compliance-remediation",
+  "agent": "cursor",
+  "model": "gemini-3-flash",
+  "validationCommands": {
+    "typecheck": "pnpm --filter chrome_extension_next typecheck",
+    "lint": "pnpm --filter chrome_extension_next lint",
+    "test": "pnpm --filter chrome_extension_next test",
+    "build": "pnpm --filter chrome_extension_next build",
+    "audit": "node tools/audit-chrome-extension-next.cjs"
+  },
+  "userStories": [
+    {
+      "id": "AUDIT-001",
+      "title": "Update audit script to handle .stories file naming",
+      "acceptanceCriteria": [
+        "File modified: tools/audit-chrome-extension-next.cjs",
+        "getFileNamingIssue() strips .stories suffix before validating PascalCase",
+        "Storybook files like loading-indicator.stories.tsx pass naming validation",
+        "audit command runs without errors",
+        "typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Update getFileNamingIssue() to strip .stories before checking PascalCase. Reference: docs/solutions/architecture-patterns/chrome-extension-ddd-incremental-migration.md"
+    },
+    {
+      "id": "DOCS-001",
+      "title": "Add CLAUDE.md to domains/calendar/fetching",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/calendar/fetching/CLAUDE.md",
+        "Describes purpose, key files, boundaries, and patterns",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Reference existing CLAUDE.md files in chrome_extension_next for format. Describe calendar event fetching domain."
+    },
+    {
+      "id": "DOCS-002",
+      "title": "Add CLAUDE.md to domains/calendar/notifications",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/calendar/notifications/CLAUDE.md",
+        "Describes notification scheduling and handling",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe calendar notification domain patterns."
+    },
+    {
+      "id": "DOCS-003",
+      "title": "Add CLAUDE.md to domains/chat/utils",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/chat/utils/CLAUDE.md",
+        "Describes chat utility functions",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe chat utility functions including fetch-answer."
+    },
+    {
+      "id": "DOCS-004",
+      "title": "Add CLAUDE.md to domains/llm/config",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/llm/config/CLAUDE.md",
+        "Describes LLM configuration and endpoints",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe LLM configuration domain."
+    },
+    {
+      "id": "DOCS-005",
+      "title": "Add CLAUDE.md to domains/llm/providers",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/llm/providers/CLAUDE.md",
+        "Describes LLM provider implementations",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe provider pattern and base classes."
+    },
+    {
+      "id": "DOCS-006",
+      "title": "Add CLAUDE.md to domains/llm/utils",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/llm/utils/CLAUDE.md",
+        "Describes LLM utility functions",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe error handling and stream utilities."
+    },
+    {
+      "id": "DOCS-007",
+      "title": "Add CLAUDE.md to domains/recording/orchestrator",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/recording/orchestrator/CLAUDE.md",
+        "Describes recording orchestration patterns",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe recording lifecycle and state management."
+    },
+    {
+      "id": "DOCS-008",
+      "title": "Add CLAUDE.md to domains/transcription/services",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/transcription/services/CLAUDE.md",
+        "Describes transcription service layer",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe tab and token services."
+    },
+    {
+      "id": "DOCS-009",
+      "title": "Add CLAUDE.md to domains/transcription/types",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/domains/transcription/types/CLAUDE.md",
+        "Describes transcription type definitions",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe transcription configuration and context types."
+    },
+    {
+      "id": "DOCS-010",
+      "title": "Add CLAUDE.md to infrastructure/storage/constants",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/infrastructure/storage/constants/CLAUDE.md",
+        "Describes storage key constants",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe storage key naming conventions."
+    },
+    {
+      "id": "DOCS-011",
+      "title": "Add CLAUDE.md to infrastructure/storage/models",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/infrastructure/storage/models/CLAUDE.md",
+        "Describes storage data models",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe memory and storage models."
+    },
+    {
+      "id": "DOCS-012",
+      "title": "Add CLAUDE.md to infrastructure/storage/utils",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/infrastructure/storage/utils/CLAUDE.md",
+        "Describes storage utility functions",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe crypto and time utilities."
+    },
+    {
+      "id": "DOCS-013",
+      "title": "Add CLAUDE.md to ui/sidepanel",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/ui/sidepanel/CLAUDE.md",
+        "Describes sidepanel UI structure",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe sidepanel component organization."
+    },
+    {
+      "id": "DOCS-014",
+      "title": "Add CLAUDE.md to ui/styles",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/ui/styles/CLAUDE.md",
+        "Describes UI styling patterns",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe Tailwind CSS and styling conventions."
+    },
+    {
+      "id": "DOCS-015",
+      "title": "Add CLAUDE.md to ui/whisper-flow",
+      "acceptanceCriteria": [
+        "File created: apps/chrome_extension_next/src/ui/whisper-flow/CLAUDE.md",
+        "Describes Whisper transcription flow UI",
+        "audit command shows this directory no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Describe Whisper flow component patterns."
+    },
+    {
+      "id": "DOCS-016",
+      "title": "Add module docs to config files",
+      "acceptanceCriteria": [
+        "Files have top-of-file /** ... */ module docs: .storybook/main.ts, .storybook/preview.ts, lostpixel.config.ts, vitest.config.ts, wxt.config.ts",
+        "Each doc describes the file's purpose",
+        "audit command shows these files no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Add JSDoc module comments to all config files."
+    },
+    {
+      "id": "DOCS-017",
+      "title": "Add module docs to index barrel files",
+      "acceptanceCriteria": [
+        "Files have top-of-file /** ... */ module docs: domains/auth/index.ts, domains/index.ts, domains/recording/index.ts, infrastructure/config/index.ts, infrastructure/index.ts, lib/index.ts, ui/components/index.ts, ui/hooks/index.ts, ui/primitives/index.ts, ui/sidepanel/index.ts, ui/styles/index.ts, ui/whisper-flow/index.ts",
+        "Each doc describes what the barrel exports",
+        "audit command shows these files no longer flagged for missing module docs",
+        "typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Add module docs describing barrel export purpose."
+    },
+    {
+      "id": "DOCS-018",
+      "title": "Add TSDoc to loading-indicator.stories.tsx type Story",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/ui/components/loading-indicator.stories.tsx",
+        "type Story has TSDoc comment",
+        "audit command shows this file no longer flagged for missing TSDocstrings",
+        "typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Add /** ... */ docstring above type Story declaration."
+    },
+    {
+      "id": "CLEANUP-001",
+      "title": "Delete unused barrel: domains/calendar/fetching/index.ts",
+      "acceptanceCriteria": [
+        "File deleted: apps/chrome_extension_next/src/domains/calendar/fetching/index.ts",
+        "No imports reference this file (verify with rg)",
+        "audit command shows this file no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Check for imports first: rg -n 'domains/calendar/fetching' apps/chrome_extension_next/src"
+    },
+    {
+      "id": "CLEANUP-002",
+      "title": "Delete unused barrel: domains/calendar/notifications/index.ts",
+      "acceptanceCriteria": [
+        "File deleted: apps/chrome_extension_next/src/domains/calendar/notifications/index.ts",
+        "No imports reference this file",
+        "audit command shows this file no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Verify no imports before deletion."
+    },
+    {
+      "id": "CLEANUP-003",
+      "title": "Delete unused barrels in domains/",
+      "acceptanceCriteria": [
+        "Files deleted: domains/chat/index.ts, domains/index.ts, domains/memory/index.ts, domains/notes/index.ts, domains/recording/index.ts, domains/share/index.ts, domains/suggestions/index.ts, domains/summary/index.ts, domains/transcription/index.ts",
+        "No imports reference these files",
+        "audit command shows these files no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Batch delete unused domain barrels. Check imports: rg -n 'from.*domains/(chat|memory|notes|recording|share|suggestions|summary|transcription)' apps/chrome_extension_next/src"
+    },
+    {
+      "id": "CLEANUP-004",
+      "title": "Delete unused barrels in infrastructure/",
+      "acceptanceCriteria": [
+        "Files deleted: infrastructure/chrome/index.ts, infrastructure/config/index.ts, infrastructure/config/meeper-icon-base64.ts, infrastructure/index.ts",
+        "No imports reference these files",
+        "audit command shows these files no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Verify no imports before deletion. Note: infrastructure/config/index.ts may be used - check first."
+    },
+    {
+      "id": "CLEANUP-005",
+      "title": "Delete unused barrels in lib/ and types/",
+      "acceptanceCriteria": [
+        "Files deleted: lib/constants/index.ts, lib/index.ts, types/index.ts",
+        "No imports reference these files",
+        "audit command shows these files no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Verify no imports before deletion."
+    },
+    {
+      "id": "CLEANUP-006",
+      "title": "Delete unused barrels in ui/",
+      "acceptanceCriteria": [
+        "Files deleted: ui/hooks/index.ts, ui/index.ts, ui/queries/index.ts, ui/queries/memories/index.ts, ui/sidepanel/index.ts, ui/state/index.ts, ui/styles/index.ts, ui/whisper-flow/index.ts",
+        "No imports reference these files",
+        "audit command shows these files no longer flagged",
+        "typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Verify no imports before deletion. ui/components/index.ts is used - keep it."
+    },
+    {
+      "id": "RENAME-001",
+      "title": "Rename UI component files to PascalCase (batch 1)",
+      "acceptanceCriteria": [
+        "Files renamed using git mv: audio-controls.tsx -> AudioControls.tsx, capture-dropdown.tsx -> CaptureDropdown.tsx, chat-container.tsx -> ChatContainer.tsx, header.tsx -> Header.tsx, history-dialog.tsx -> HistoryDialog.tsx",
+        "All imports updated to use new names",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv to preserve history. Update imports: rg -n 'audio-controls|capture-dropdown|chat-container|header|history-dialog' apps/chrome_extension_next/src"
+    },
+    {
+      "id": "RENAME-002",
+      "title": "Rename UI component files to PascalCase (batch 2)",
+      "acceptanceCriteria": [
+        "Files renamed: history-sidebar.tsx -> HistorySidebar.tsx, history-view.tsx -> HistoryView.tsx, input-container.tsx -> InputContainer.tsx, loading-indicator.tsx -> LoadingIndicator.tsx, loading-indicator.stories.tsx -> LoadingIndicator.stories.tsx",
+        "All imports updated",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv. Update Storybook imports if needed."
+    },
+    {
+      "id": "RENAME-003",
+      "title": "Rename UI component files to PascalCase (batch 3)",
+      "acceptanceCriteria": [
+        "Files renamed: memory-list-item.tsx -> MemoryListItem.tsx, memory-search.tsx -> MemorySearch.tsx, memory-selector.tsx -> MemorySelector.tsx, message-item.tsx -> MessageItem.tsx, message-list.tsx -> MessageList.tsx",
+        "All imports updated",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv and update all imports."
+    },
+    {
+      "id": "RENAME-004",
+      "title": "Rename UI component files to PascalCase (batch 4)",
+      "acceptanceCriteria": [
+        "Files renamed: mic-pill.tsx -> MicPill.tsx, microphone-selector.tsx -> MicrophoneSelector.tsx, model-selector-query.tsx -> ModelSelectorQuery.tsx, model-selector-view.tsx -> ModelSelectorView.tsx, notes-panel.tsx -> NotesPanel.tsx",
+        "All imports updated",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv and update all imports."
+    },
+    {
+      "id": "RENAME-005",
+      "title": "Rename UI component files to PascalCase (batch 5)",
+      "acceptanceCriteria": [
+        "Files renamed: record-button.tsx -> RecordButton.tsx, recording-indicator.tsx -> RecordingIndicator.tsx, recording-timer.tsx -> RecordingTimer.tsx, send-button.tsx -> SendButton.tsx, settings-panel.tsx -> SettingsPanel.tsx",
+        "All imports updated",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv and update all imports."
+    },
+    {
+      "id": "RENAME-006",
+      "title": "Rename UI component files to PascalCase (batch 6)",
+      "acceptanceCriteria": [
+        "Files renamed: share-panel.tsx -> SharePanel.tsx, suggestions-panel.tsx -> SuggestionsPanel.tsx, transcript-display.tsx -> TranscriptDisplay.tsx, welcome-greeting.tsx -> WelcomeGreeting.tsx",
+        "All imports updated",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv and update all imports."
+    },
+    {
+      "id": "RENAME-007",
+      "title": "Rename UI page files to PascalCase",
+      "acceptanceCriteria": [
+        "Files renamed: memory-detail.tsx -> MemoryDetail.tsx, popup.tsx -> Popup.tsx, sidepanel.tsx -> Sidepanel.tsx, welcome.tsx -> Welcome.tsx",
+        "All imports updated",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv. Update entrypoint imports if needed."
+    },
+    {
+      "id": "RENAME-008",
+      "title": "Rename primitives story file to PascalCase",
+      "acceptanceCriteria": [
+        "File renamed: button.stories.tsx -> Button.stories.tsx",
+        "All imports updated",
+        "audit command shows this file no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv. Update Storybook imports."
+    },
+    {
+      "id": "RENAME-009",
+      "title": "Rename state type files to kebab-case",
+      "acceptanceCriteria": [
+        "Files renamed: chat.types.ts -> chat-types.ts, sidepanel.types.ts -> sidepanel-types.ts",
+        "All imports updated",
+        "audit command shows these files no longer flagged",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use git mv. Update all type imports."
+    },
+    {
+      "id": "MIGRATE-001",
+      "title": "Fix any type in fetch-answer.ts",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/domains/chat/utils/fetch-answer.ts",
+        "No 'any' types remain (use explicit types or Zod schemas)",
+        "audit command shows this file no longer flagged for 'any' usage",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Replace any with explicit types. Reference: reports/chrome-extension-next-audit.json line 108"
+    },
+    {
+      "id": "MIGRATE-002",
+      "title": "Refactor chat-service.ts class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/domains/chat/chat-service.ts",
+        "Static-only class converted to module functions",
+        "All callers updated to use new function exports",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Refactor static-only class to functions per functional-over-class rule. Reference: reports/chrome-extension-next-manual-review.json"
+    },
+    {
+      "id": "MIGRATE-003",
+      "title": "Refactor fetch-answer.ts AnswerFetcher class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/domains/chat/utils/fetch-answer.ts",
+        "AnswerFetcher class converted to module functions",
+        "All callers updated",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Refactor stub class to functions. May need to migrate full implementation from chrome_extension first."
+    },
+    {
+      "id": "MIGRATE-004",
+      "title": "Refactor memory-service.ts class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/domains/memory/memory-service.ts",
+        "Static-only class converted to module functions or justified with stateful fields",
+        "All callers updated",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Check if class has state. If static-only, convert to functions. May need to migrate full implementation first."
+    },
+    {
+      "id": "MIGRATE-005",
+      "title": "Refactor network-helper.ts class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/domains/transcription/network-helper.ts",
+        "Static-only class converted to module functions",
+        "All callers updated",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Refactor static-only helper to functions."
+    },
+    {
+      "id": "MIGRATE-006",
+      "title": "Refactor whisper-handler.ts class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/domains/transcription/whisper-handler.ts",
+        "Static-only class converted to module functions",
+        "All callers updated",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Refactor static-only handler to functions."
+    },
+    {
+      "id": "MIGRATE-007",
+      "title": "Refactor event-broadcaster.ts class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/infrastructure/messaging/event-broadcaster.ts",
+        "Class converted to module functions or justified with state",
+        "All callers updated",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Check if it wraps MessageBus. If no state, convert to functions."
+    },
+    {
+      "id": "MIGRATE-008",
+      "title": "Refactor message-bus.ts class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/infrastructure/messaging/message-bus.ts",
+        "Static-only class converted to module functions",
+        "All callers updated",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Refactor static-only wrapper to functions. May need to migrate full implementation first."
+    },
+    {
+      "id": "MIGRATE-009",
+      "title": "Refactor fetch-personalization.ts class to functions",
+      "acceptanceCriteria": [
+        "File modified: apps/chrome_extension_next/src/lib/utils/fetch-personalization.ts",
+        "Stub class converted to module functions",
+        "All callers updated",
+        "audit command shows this file passes manual review",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Refactor stub class to functions. May need to migrate full implementation first."
+    },
+    {
+      "id": "FINAL-001",
+      "title": "Run final audit and validate zero issues",
+      "acceptanceCriteria": [
+        "Command succeeds: node tools/audit-chrome-extension-next.cjs",
+        "reports/chrome-extension-next-audit.json shows filesWithIssues: 0",
+        "All manual review entries in reports/chrome-extension-next-manual-review.json are status: 'pass'",
+        "typecheck passes",
+        "lint passes",
+        "test passes",
+        "build passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "Final validation. All compliance issues must be resolved."
+    }
+  ]
+}

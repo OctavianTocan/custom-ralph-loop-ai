@@ -1,0 +1,6 @@
+{
+  "branchName": "ralph/test-invalid",
+  "agent": "invalid-agent-name",
+  "validationCommands": {},
+  "userStories": []
+}

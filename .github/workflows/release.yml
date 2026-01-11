@@ -1,0 +1,98 @@
+name: Create Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      
+      - name: Get previous tag
+        id: previous_tag
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+          if [ -z "$PREV_TAG" ]; then
+            echo "No previous tag found"
+          else
+            echo "Previous tag: $PREV_TAG"
+          fi
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ -z "${{ steps.previous_tag.outputs.previous_tag }}" ]; then
+            COMMITS=$(git log --pretty=format:"- %s" HEAD~10..HEAD)
+            STATS=$(git diff --stat HEAD~10..HEAD)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" ${{ steps.previous_tag.outputs.previous_tag }}..HEAD)
+            STATS=$(git diff --stat ${{ steps.previous_tag.outputs.previous_tag }}..HEAD)
+          fi
+          
+          # Create release notes
+          cat > release_notes.md << 'EOF'
+          ## Changes
+          
+          $COMMITS
+          
+          ## Statistics
+          
+          ```
+          $STATS
+          ```
+          EOF
+          
+          # Expand variables
+          eval "echo \"$(cat release_notes.md)\"" > release_notes_final.md
+      
+      - name: Create release packages
+        run: |
+          # Create tarball
+          tar -czf ralph-v${{ steps.version.outputs.version }}.tar.gz \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.ralph/sessions' \
+            --exclude='node_modules' \
+            --exclude='*.log' \
+            --exclude='*.tar.gz' \
+            --exclude='*.zip' \
+            .
+          
+          # Create zip
+          zip -qr ralph-v${{ steps.version.outputs.version }}.zip . \
+            -x '*.git*' \
+            -x '*/.ralph/sessions/*' \
+            -x '*/node_modules/*' \
+            -x '*.log' \
+            -x '*.tar.gz' \
+            -x '*.zip'
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ralph ${{ steps.version.outputs.tag }}
+          body_path: release_notes_final.md
+          files: |
+            ralph-v${{ steps.version.outputs.version }}.tar.gz
+            ralph-v${{ steps.version.outputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -93,9 +93,83 @@ jobs:
             echo "## Statistics" >> release_notes_final.md
             echo "" >> release_notes_final.md
             echo '```' >> release_notes_final.md
-            echo "$STATS" >> release_notes_final.md
-            echo '```' >> release_notes_final.md
-          }
+          echo "$STATS" >> release_notes_final.md
+          echo '```' >> release_notes_final.md
+        }
+      
+      - name: Update CHANGELOG.md
+        run: |
+          RELEASE_DATE=$(date +%Y-%m-%d)
+          VERSION=${{ steps.version.outputs.version }}
+          
+          # Create CHANGELOG.md if it doesn't exist
+          if [ ! -f CHANGELOG.md ]; then
+            cat > CHANGELOG.md << 'EOF'
+          # Changelog
+          
+          All notable changes to this project will be documented in this file.
+          
+          The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+          and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+          
+          ## [Unreleased]
+          EOF
+          fi
+          
+          # Create temporary file with new release entry
+          cat > new_entry.md << EOF
+          
+          ## [$VERSION] - $RELEASE_DATE
+          
+          EOF
+          
+          # Append the AI-generated release notes
+          cat release_notes_final.md >> new_entry.md
+          
+          # Insert the new entry after the [Unreleased] section
+          # Find the line number of [Unreleased] and insert after it
+          if grep -q "## \[Unreleased\]" CHANGELOG.md; then
+            # Split the file at [Unreleased] section and insert new content
+            awk '/## \[Unreleased\]/{print; print ""; system("cat new_entry.md"); next}1' CHANGELOG.md > CHANGELOG.tmp
+            mv CHANGELOG.tmp CHANGELOG.md
+          else
+            # If no [Unreleased] section, just append to the file
+            cat new_entry.md >> CHANGELOG.md
+          fi
+          
+          # Clean up temporary file
+          rm -f new_entry.md
+          
+          echo "CHANGELOG.md updated with release $VERSION"
+      
+      - name: Commit and push changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add CHANGELOG.md
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to CHANGELOG.md"
+          else
+            git commit -m "chore: update changelog for v${{ steps.version.outputs.version }}
+          
+          Co-Authored-By: Warp <agent@warp.dev>"
+            
+            # Push to the branch that the tag points to (typically master/main)
+            # Get the branch name from the tag
+            BRANCH=$(git branch -r --contains ${{ steps.version.outputs.tag }} | grep -v HEAD | head -n1 | sed 's/.*origin\///')
+            
+            if [ -n "$BRANCH" ]; then
+              git push origin HEAD:$BRANCH
+              echo "Pushed changelog update to $BRANCH"
+            else
+              echo "Warning: Could not determine branch, skipping push"
+            fi
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Create release packages
         run: |

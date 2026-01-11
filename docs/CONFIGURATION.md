@@ -31,13 +31,14 @@ Complete reference for configuring Ralph and PRDs.
 ## Fields
 
 ### Top-Level Fields
-
-| Field | Required | Description |
+|| Field | Required | Description |
 |-------|----------|-------------|
 | `branchName` | ✅ Yes | Git branch to create/use |
+| `workflow` | ❌ No | Workflow to use (e.g., `"test-coverage"`) |
 | `agent` | ❌ No | AI agent to use (defaults to `"claude"`) |
 | `model` | ❌ No* | Model to use (format depends on agent, *required for cursor) |
 | `validationCommands` | ✅ Yes | Commands to run after each task |
+| `userStories` | ✅ Yes | Array of tasks to complete |
 | `userStories` | ✅ Yes | Array of tasks to complete |
 
 ### User Story Fields
@@ -97,6 +98,64 @@ Complete reference for configuring Ralph and PRDs.
 ```
 
 **Important:** If `agent` is `"cursor"`, the `model` field is **MANDATORY**.
+
+## Workflows
+
+### What are Workflows?
+
+Workflows are named modes of running Ralph that provide specialized instructions for specific tasks (e.g., test coverage improvement, documentation audits, etc.).
+
+When you specify a workflow, Ralph appends workflow-specific instructions to the base `prompt.md` file.
+
+### Specifying a Workflow
+
+**Option 1: In prd.json**
+```json
+{
+  "workflow": "test-coverage",
+  "coverageCommand": "pnpm test --coverage",
+  "coverageTarget": 85
+}
+```
+
+**Option 2: Via CLI flag (overrides prd.json)**
+```bash
+./ralph.sh 25 --session my-session --workflow test-coverage
+```
+
+### Available Workflows
+
+#### test-coverage
+
+Incremental test coverage improvement workflow.
+
+**Required config fields:**
+- `coverageCommand` (string): Command to run coverage (e.g., `"pnpm test --coverage"`)
+- `coverageTarget` (number): Target coverage % (e.g., 85)
+
+**How it works:**
+1. Runs coverage command to find uncovered user-facing behavior
+2. Writes exactly ONE meaningful test per iteration
+3. Re-runs coverage and records progress
+4. Stops when coverage ≥ target
+
+**Example PRD:**
+See `examples/prd.test-coverage.example`
+
+### Creating Custom Workflows
+
+Create a new workflow by adding a prompt file:
+
+```bash
+mkdir -p workflows/my-workflow
+cat > workflows/my-workflow/prompt.md << 'EOF'
+# My Workflow
+
+Your workflow-specific instructions here.
+EOF
+```
+
+Then use it: `./ralph.sh --session my-session --workflow my-workflow`
 
 ## Validation Commands
 

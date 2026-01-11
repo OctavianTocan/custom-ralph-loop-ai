@@ -141,8 +141,13 @@ test_pass
 # Test: Hook handles missing jq gracefully
 # =============================================================================
 test_start "handles missing jq by falling back to grep/sed"
-MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$(which jq 2>/dev/null)")" | tr '\n' ':')
-OUTPUT=$(PATH="$MODIFIED_PATH" echo '{"command": "test", "exit_code": 0}' | "$HOOK" 2>/dev/null)
+JQ_PATH="$(which jq 2>/dev/null || true)"
+if [[ -n "$JQ_PATH" ]]; then
+  MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$JQ_PATH")" | tr '\n' ':')
+else
+  MODIFIED_PATH="$PATH"
+fi
+OUTPUT=$(echo '{"command": "test", "exit_code": 0}' | PATH="$MODIFIED_PATH" "$HOOK" 2>/dev/null)
 EXIT_CODE=$?
 assert_exit_code "0" "$EXIT_CODE"
 test_pass

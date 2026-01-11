@@ -120,8 +120,13 @@ test_pass
 # =============================================================================
 test_start "falls back when jq is not in PATH"
 # Create a modified PATH without jq
-MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$(which jq 2>/dev/null)")" | tr '\n' ':')
-OUTPUT=$(PATH="$MODIFIED_PATH" echo '{"command": "test"}' | "$HOOK" 2>/dev/null)
+JQ_PATH="$(which jq 2>/dev/null || true)"
+if [[ -n "$JQ_PATH" ]]; then
+  MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$JQ_PATH")" | tr '\n' ':')
+else
+  MODIFIED_PATH="$PATH"
+fi
+OUTPUT=$(echo '{"command": "test"}' | PATH="$MODIFIED_PATH" "$HOOK" 2>/dev/null)
 EXIT_CODE=$?
 assert_exit_code "0" "$EXIT_CODE"
 assert_valid_json "$OUTPUT"

@@ -12,22 +12,20 @@ INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Look for active session (most recently modified ralph.log)
+# Look for active session (use null-separated output for space-safe handling)
 RALPH_LOG=""
 if [[ -d "$PROJECT_ROOT/sessions" ]]; then
-  RALPH_LOG=$(find "$PROJECT_ROOT/sessions" -name "ralph.log" -type f 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
+  RALPH_LOG=$(find "$PROJECT_ROOT/sessions" -name "ralph.log" -type f -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null | head -1)
 fi
 
 # If we found an active session, log the command
 if [[ -n "$RALPH_LOG" && -f "$RALPH_LOG" ]]; then
-  # Extract command and duration
+  # Extract command and exit code
   if command -v jq &> /dev/null; then
     COMMAND=$(echo "$INPUT" | jq -r '.command // ""')
-    DURATION=$(echo "$INPUT" | jq -r '.duration // 0')
     EXIT_CODE=$(echo "$INPUT" | jq -r '.exit_code // 0')
   else
     COMMAND=$(echo "$INPUT" | grep -o '"command"[[:space:]]*:[[:space:]]*"[^"]*"' | sed 's/.*"command"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
-    DURATION="?"
     EXIT_CODE="?"
   fi
 

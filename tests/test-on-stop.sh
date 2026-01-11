@@ -165,8 +165,13 @@ echo "Continue without jq" > "$MOCK_PROJECT5/sessions/session-005/.ralph-auto-co
 cp "$HOOK" "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh"
 chmod +x "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh"
 
-MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$(which jq 2>/dev/null)")" | tr '\n' ':')
-OUTPUT=$(PATH="$MODIFIED_PATH" echo '{"conversation_id": "123"}' | "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh" 2>/dev/null)
+JQ_PATH="$(which jq 2>/dev/null || true)"
+if [[ -n "$JQ_PATH" ]]; then
+  MODIFIED_PATH=$(echo "$PATH" | tr ':' '\n' | grep -v "$(dirname "$JQ_PATH")" | tr '\n' ':')
+else
+  MODIFIED_PATH="$PATH"
+fi
+OUTPUT=$(echo '{"conversation_id": "123"}' | PATH="$MODIFIED_PATH" "$MOCK_PROJECT5/cursor-config/hooks/on-stop.sh" 2>/dev/null)
 EXIT_CODE=$?
 assert_exit_code "0" "$EXIT_CODE"
 assert_contains "$OUTPUT" "followup_message"

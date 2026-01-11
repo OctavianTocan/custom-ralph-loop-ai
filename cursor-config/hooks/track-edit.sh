@@ -12,10 +12,10 @@ INPUT=$(cat)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Look for active session
+# Look for active session (use null-separated output for space-safe handling)
 RALPH_LOG=""
 if [[ -d "$PROJECT_ROOT/sessions" ]]; then
-  RALPH_LOG=$(find "$PROJECT_ROOT/sessions" -name "ralph.log" -type f 2>/dev/null | xargs ls -t 2>/dev/null | head -1)
+  RALPH_LOG=$(find "$PROJECT_ROOT/sessions" -name "ralph.log" -type f -print0 2>/dev/null | xargs -0 ls -t 2>/dev/null | head -1)
 fi
 
 # If we found an active session, log the edit

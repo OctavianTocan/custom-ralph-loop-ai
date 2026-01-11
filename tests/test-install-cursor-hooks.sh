@@ -8,7 +8,7 @@ INSTALL_SCRIPT="$PROJECT_ROOT/install-cursor-hooks.sh"
 
 # Create a temporary test environment
 TEST_TMP_DIR=$(mktemp -d)
-trap "rm -rf $TEST_TMP_DIR" EXIT
+trap 'rm -rf "$TEST_TMP_DIR"' EXIT
 
 # =============================================================================
 # Helper: Create a mock Ralph project structure

@@ -171,7 +171,7 @@ Edit `.ralph/sessions/auth-coverage/prd.json`:
 
 ### Expected Test Commits
 
-```
+```text
 test(auth): verify JWT token expiration rejects old tokens
 test(auth): confirm invalid passwords fail authentication
 test(auth): validate refresh token rotation on reuse

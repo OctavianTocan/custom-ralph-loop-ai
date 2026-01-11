@@ -36,9 +36,8 @@ Complete reference for configuring Ralph and PRDs.
 | `branchName` | ✅ Yes | Git branch to create/use |
 | `workflow` | ❌ No | Workflow to use (e.g., `"test-coverage"`) |
 | `agent` | ❌ No | AI agent to use (defaults to `"claude"`) |
-| `model` | ❌ No* | Model to use (format depends on agent, *required for cursor) |
+| `model` | ❌ No* | Model to use (format depends on agent, (*required for cursor*) |
 | `validationCommands` | ✅ Yes | Commands to run after each task |
-| `userStories` | ✅ Yes | Array of tasks to complete |
 | `userStories` | ✅ Yes | Array of tasks to complete |
 
 ### User Story Fields
@@ -109,7 +108,7 @@ When you specify a workflow, Ralph appends workflow-specific instructions to the
 
 ### Specifying a Workflow
 
-**Option 1: In prd.json**
+### Option 1: In prd.json
 ```json
 {
   "workflow": "test-coverage",
@@ -118,7 +117,7 @@ When you specify a workflow, Ralph appends workflow-specific instructions to the
 }
 ```
 
-**Option 2: Via CLI flag (overrides prd.json)**
+### Option 2: Via CLI flag (overrides prd.json)
 ```bash
 ./ralph.sh 25 --session my-session --workflow test-coverage
 ```
@@ -140,15 +139,15 @@ Incremental test coverage improvement workflow.
 4. Stops when coverage ≥ target
 
 **Example PRD:**
-See `examples/prd.test-coverage.example`
+See `.ralph/examples/prd.test-coverage.example`
 
 ### Creating Custom Workflows
 
 Create a new workflow by adding a prompt file:
 
 ```bash
-mkdir -p workflows/my-workflow
-cat > workflows/my-workflow/prompt.md << 'EOF'
+mkdir -p .ralph/workflows/my-workflow
+cat > .ralph/workflows/my-workflow/prompt.md << 'EOF'
 # My Workflow
 
 Your workflow-specific instructions here.

@@ -1,7 +1,7 @@
 ---
 name: ralph-run
 description: Start or continue a Ralph autonomous coding session
-argument-hint: "[session-name] [iterations]"
+argument-hint: "[--session session-name] [iterations]"
 ---
 
 Run:

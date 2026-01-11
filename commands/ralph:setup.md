@@ -226,7 +226,7 @@ If cursor selected and no model provided:
   Please provide a model (e.g., claude-sonnet-4-20250514)
 ```
 
-## Step 5.5: Cursor Agent Validation (If Using Cursor)
+## Step 7: Cursor Agent Validation (If Using Cursor)
 
 **If the user selected `cursor` as the agent:**
 
@@ -256,7 +256,7 @@ If cursor selected and no model provided:
 
 **This validation ensures Ralph can successfully use the Cursor agent when executing tasks.**
 
-## Step 6: Suggest prd.json Structure
+## Step 8: Suggest prd.json Structure
 
 After analyzing the feature and getting agent/model preferences, create a complete prd.json:
 
@@ -288,7 +288,7 @@ After analyzing the feature and getting agent/model preferences, create a comple
 - **Minimal:** Just `"typecheck": "pnpm typecheck"`
 - Include all commands you want Ralph to run
 
-## Step 7: Create Session Directory and Files
+## Step 9: Create Session Directory and Files
 
 **Session naming convention:**
 ```
@@ -309,8 +309,8 @@ Example: `.ralph/sessions/2026-01-08-user-authentication/`
 Generate the complete prd.json file with:
 
 - Meaningful branch name (lowercase, kebab-case)
-- Agent selection (from Step 5)
-- Model selection (from Step 5, if specified)
+- Agent selection (from Step 6)
+- Model selection (from Step 6, if specified)
 - Appropriate validation commands
 - 3-10 tasks (start small)
 - Each task atomic and measurable
@@ -329,7 +329,7 @@ Write files to: `{ralph-directory}/sessions/{session-name}/`
 - `scripts/ralph/sessions/` (if Ralph is in `scripts/ralph/`)
 - Or wherever the user placed Ralph
 
-## Step 8: Usage Instructions
+## Step 10: Usage Instructions
 
 After creating the session, provide usage instructions:
 
@@ -364,7 +364,7 @@ git log --oneline
 - `progress.txt` - Accumulated patterns and gotchas
 - `learnings.md` - Structured learnings from each task
 
-## Step 9: Tips and Gotchas
+## Step 11: Tips and Gotchas
 
 **Common pitfalls to avoid:**
 

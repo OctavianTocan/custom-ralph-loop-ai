@@ -170,13 +170,19 @@ echo "Test prompt" > "$TEMP_PROMPT"
 
 # Temporarily rename pretty-printer to simulate it being missing
 if [[ -f "$PRETTY_PRINTER" ]]; then
-  # Use trap to ensure restoration even if test fails or is interrupted
+  # Define cleanup function for pretty-printer restoration
   cleanup_pretty_printer() {
     if [[ -f "$PRETTY_PRINTER.backup" ]]; then
       mv "$PRETTY_PRINTER.backup" "$PRETTY_PRINTER"
     fi
   }
-  trap cleanup_pretty_printer EXIT
+
+  # Chain cleanup functions to preserve existing cleanup_mock trap
+  cleanup_all() {
+    cleanup_pretty_printer
+    cleanup_mock
+  }
+  trap cleanup_all EXIT
 
   mv "$PRETTY_PRINTER" "$PRETTY_PRINTER.backup"
 
@@ -189,9 +195,9 @@ if [[ -f "$PRETTY_PRINTER" ]]; then
   # Output should contain JSON (not pretty-printed)
   assert_contains "$OUTPUT" '"type":"assistant"'
 
-  # Restore pretty-printer
+  # Restore pretty-printer and reset trap to original cleanup_mock only
   cleanup_pretty_printer
-  trap - EXIT
+  trap cleanup_mock EXIT
 
   rm -f "$TEMP_PROMPT" "$TEMP_LOG"
   test_pass

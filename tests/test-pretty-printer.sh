@@ -20,14 +20,14 @@ assert_file_executable "$PRETTY_PRINTER"
 test_pass
 
 # =============================================================================
-# Test: Pretty printer shows thinking with emoji and truncation
+# Test: Pretty printer shows thinking with label and truncation
 # =============================================================================
-test_start "thinking blocks show with 🤔 emoji and are truncated at 200 chars"
+test_start "thinking blocks show with [THINK] label and are truncated at 200 chars"
 OUTPUT=$(cat "$FIXTURES_DIR/thinking.jsonl" | "$PRETTY_PRINTER" 2>&1)
 EXIT_CODE=$?
 assert_exit_code 0 $EXIT_CODE
-# Check for thinking emoji
-assert_contains "$OUTPUT" "🤔"
+# Check for thinking label
+assert_contains "$OUTPUT" "[THINK]"
 # Check that long thinking is truncated (look for ellipsis or truncation)
 assert_contains "$OUTPUT" "..."
 test_pass
@@ -35,12 +35,12 @@ test_pass
 # =============================================================================
 # Test: Pretty printer shows tool_use with name highlighted
 # =============================================================================
-test_start "tool_use blocks show with 🔧 emoji and tool name"
+test_start "tool_use blocks show with [TOOL] label and tool name"
 OUTPUT=$(cat "$FIXTURES_DIR/tool-calls.jsonl" | "$PRETTY_PRINTER" 2>&1)
 EXIT_CODE=$?
 assert_exit_code 0 $EXIT_CODE
-# Check for tool emoji
-assert_contains "$OUTPUT" "🔧"
+# Check for tool label
+assert_contains "$OUTPUT" "[TOOL]"
 # Check that tool names appear
 assert_contains "$OUTPUT" "Read"
 assert_contains "$OUTPUT" "Edit"
@@ -50,12 +50,12 @@ test_pass
 # =============================================================================
 # Test: Pretty printer shows result events
 # =============================================================================
-test_start "result events show with ✅ emoji"
+test_start "result events show with [RESULT] label"
 OUTPUT=$(cat "$FIXTURES_DIR/tool-calls.jsonl" | "$PRETTY_PRINTER" 2>&1)
 EXIT_CODE=$?
 assert_exit_code 0 $EXIT_CODE
-# Check for result emoji
-assert_contains "$OUTPUT" "✅"
+# Check for result label
+assert_contains "$OUTPUT" "[RESULT]"
 # Check that results are truncated at 500 chars (look for ellipsis)
 assert_contains "$OUTPUT" "..."
 test_pass
@@ -63,12 +63,12 @@ test_pass
 # =============================================================================
 # Test: Pretty printer shows text output
 # =============================================================================
-test_start "text output shows with 💬 emoji"
+test_start "text output shows with [OUTPUT] label"
 OUTPUT=$(cat "$FIXTURES_DIR/text-output.jsonl" | "$PRETTY_PRINTER" 2>&1)
 EXIT_CODE=$?
 assert_exit_code 0 $EXIT_CODE
-# Check for text emoji
-assert_contains "$OUTPUT" "💬"
+# Check for text label
+assert_contains "$OUTPUT" "[OUTPUT]"
 # Check that text appears
 assert_contains "$OUTPUT" "Based on my analysis"
 assert_contains "$OUTPUT" "implementation is complete"
@@ -81,11 +81,11 @@ test_start "mixed session with all event types formats correctly"
 OUTPUT=$(cat "$FIXTURES_DIR/mixed-session.jsonl" | "$PRETTY_PRINTER" 2>&1)
 EXIT_CODE=$?
 assert_exit_code 0 $EXIT_CODE
-# Check all emojis appear
-assert_contains "$OUTPUT" "🤔"
-assert_contains "$OUTPUT" "🔧"
-assert_contains "$OUTPUT" "✅"
-assert_contains "$OUTPUT" "💬"
+# Check all labels appear
+assert_contains "$OUTPUT" "[THINK]"
+assert_contains "$OUTPUT" "[TOOL]"
+assert_contains "$OUTPUT" "[RESULT]"
+assert_contains "$OUTPUT" "[OUTPUT]"
 # Check expected content
 assert_contains "$OUTPUT" "Read: config.json"
 assert_contains "$OUTPUT" "Edit: config.json"
@@ -114,9 +114,9 @@ OUTPUT_COLOR=$(cat "$FIXTURES_DIR/text-output.jsonl" | "$PRETTY_PRINTER" 2>&1)
 # Get output without colors
 OUTPUT_NO_COLOR=$(cat "$FIXTURES_DIR/text-output.jsonl" | "$PRETTY_PRINTER" --no-color 2>&1)
 # Output should differ (color version has ANSI codes)
-# We check that both have the text emoji
-assert_contains "$OUTPUT_COLOR" "💬"
-assert_contains "$OUTPUT_NO_COLOR" "💬"
+# We check that both have the text label
+assert_contains "$OUTPUT_COLOR" "[OUTPUT]"
+assert_contains "$OUTPUT_NO_COLOR" "[OUTPUT]"
 test_pass
 
 # =============================================================================
@@ -136,7 +136,7 @@ test_start "single JSON line processes correctly"
 OUTPUT=$(echo '{"type":"assistant","message":{"content":[{"type":"text","text":"Hello"}]}}' | "$PRETTY_PRINTER" 2>&1)
 EXIT_CODE=$?
 assert_exit_code 0 $EXIT_CODE
-assert_contains "$OUTPUT" "💬"
+assert_contains "$OUTPUT" "[OUTPUT]"
 assert_contains "$OUTPUT" "Hello"
 test_pass
 

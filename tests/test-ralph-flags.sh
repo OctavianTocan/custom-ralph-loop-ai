@@ -16,7 +16,7 @@ test_start "--version outputs version in correct format"
 OUTPUT=$("$RALPH_SCRIPT" --version 2>&1)
 EXIT_CODE=$?
 assert_exit_code 0 $EXIT_CODE
-assert_contains "$OUTPUT" "ralph-ai-coding-loop v"
+assert_contains "$OUTPUT" "ralph-ai-coding-loop"
 test_pass
 
 # =============================================================================

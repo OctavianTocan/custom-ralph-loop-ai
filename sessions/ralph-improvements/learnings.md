@@ -36,6 +36,7 @@ Status: COMPLETED
 cli-flags: help-version
 testing: test-first-success
 patterns: flag-pre-scan
+
 ## RALPH-002 - Add init subcommand to create new sessions
 Date: 2026-01-12 17:30
 Status: COMPLETED
@@ -73,6 +74,7 @@ cli-subcommands: init
 session-management: creation
 testing: test-first-success
 patterns: heredoc-templates
+
 ## RALPH-003 - Create pretty-printer for stream-json output
 Date: 2026-01-12 17:23
 Status: COMPLETED

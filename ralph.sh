@@ -107,8 +107,9 @@ if [[ "$1" == "init" ]]; then
 }
 EOF
 
-  # Replace placeholder with actual session name
-  sed -i "s/SESSION_NAME/$SESSION_NAME/g" "$SESSION_PATH/prd.json"
+  # Replace placeholder with actual session name (portable for macOS and Linux)
+  sed "s/SESSION_NAME/$SESSION_NAME/g" "$SESSION_PATH/prd.json" > "$SESSION_PATH/prd.json.tmp"
+  mv "$SESSION_PATH/prd.json.tmp" "$SESSION_PATH/prd.json"
 
   # Create progress.txt
   cat > "$SESSION_PATH/progress.txt" <<EOF

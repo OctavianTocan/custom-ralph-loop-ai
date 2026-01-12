@@ -31,10 +31,10 @@ check() {
   local result="$2"
   if [[ "$result" == "0" ]]; then
     echo -e "  ${G}✓${NC} $name"
-    ((PASSED++))
+    ((PASSED++)) || true
   else
     echo -e "  ${R}✗${NC} $name"
-    ((FAILED++))
+    ((FAILED++)) || true
   fi
 }
 
@@ -93,8 +93,8 @@ rm -rf /tmp/ralph-demo-install
 echo ""
 
 echo -e "${BOLD}5. Testing pretty-printer${NC}"
-echo -e "${DIM}   Command: echo '{"type":"text","text":"Hello"}' | ./ralph-pretty-print.sh${NC}"
-OUTPUT=$(echo '{"type":"content_block_delta","delta":{"type":"text_delta","text":"Hello World"}}' | ./ralph-pretty-print.sh --no-color 2>&1)
+echo -e "${DIM}   Command: echo '{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"text\",\"text\":\"Hello World\"}]}}' | ./ralph-pretty-print.sh${NC}"
+OUTPUT=$(echo '{"type":"assistant","message":{"content":[{"type":"text","text":"Hello World"}]}}' | ./ralph-pretty-print.sh --no-color 2>&1)
 [[ "$OUTPUT" == *"Hello World"* ]] && check "pretty-printer formats text" 0 || check "pretty-printer formats text" 1
 
 OUTPUT=$(./ralph-pretty-print.sh --help 2>&1)
@@ -114,8 +114,9 @@ echo -e "${BOLD}7. Running test suite${NC}"
 echo -e "${DIM}   Command: ./tests/test-runner.sh${NC}"
 TEST_OUTPUT=$(./tests/test-runner.sh 2>&1 | tail -5)
 echo "$TEST_OUTPUT" | grep -q "Passed:" && check "test suite runs" 0 || check "test suite runs" 1
-PASSED_COUNT=$(echo "$TEST_OUTPUT" | grep "Passed:" | grep -o '[0-9]*')
-[[ "$PASSED_COUNT" -ge 160 ]] && check "160+ tests pass" 0 || check "160+ tests pass" 1
+# Extract just the first number after "Passed:" (e.g., "Passed:  171" -> "171")
+PASSED_COUNT=$(echo "$TEST_OUTPUT" | grep "Passed:" | sed 's/.*Passed:[^0-9]*\([0-9]*\).*/\1/' | head -1)
+[[ -n "$PASSED_COUNT" && "$PASSED_COUNT" -ge 160 ]] && check "160+ tests pass" 0 || check "160+ tests pass" 1
 echo ""
 
 # Summary

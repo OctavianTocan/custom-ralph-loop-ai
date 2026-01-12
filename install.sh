@@ -87,6 +87,15 @@ if [[ ! -d "$SCRIPT_DIR/runners" ]]; then
   exit 1
 fi
 
+# Check runners directory has .sh files
+shopt -s nullglob
+runner_files=("$SCRIPT_DIR/runners/"*.sh)
+shopt -u nullglob
+if [[ ${#runner_files[@]} -eq 0 ]]; then
+  echo "Error: No .sh files found in $SCRIPT_DIR/runners/"
+  exit 1
+fi
+
 # ============================================================================
 # Installation
 # ============================================================================

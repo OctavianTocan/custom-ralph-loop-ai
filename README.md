@@ -94,7 +94,7 @@ This section is designed for AI agents (Claude, Cursor, etc.) helping users inst
 
 ```bash
 # Clone and install in one step
-git clone https://github.com/anthropics/ralph.git /tmp/ralph-install && \
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git /tmp/ralph-install && \
   /tmp/ralph-install/install.sh && \
   rm -rf /tmp/ralph-install
 ```
@@ -103,7 +103,7 @@ git clone https://github.com/anthropics/ralph.git /tmp/ralph-install && \
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/anthropics/ralph.git
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git ralph
 
 # 2. Run the installer
 cd ralph
@@ -181,9 +181,9 @@ sudo apt-get install jq
 # See: https://claude.ai/code
 ```
 
-### Alternative: Claude Chrome MCP
+### Alternative: Browser-based Workflows
 
-If you're using Claude in the browser, you can use the Chrome MCP extension instead of the CLI. See the [Claude Chrome MCP documentation](https://github.com/anthropics/claude-chrome-mcp) for setup instructions.
+If you're using Claude in the browser, you can copy-paste the prompt.md content directly into your conversation. The CLI provides better automation, but browser-based workflows work for smaller tasks.
 
 ## Usage
 

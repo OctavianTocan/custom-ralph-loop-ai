@@ -173,39 +173,15 @@ When running `claude -p --output-format stream-json`, the output is newline-deli
 
 ## Task Status
 
-- [ ] RALPH-001: --help/--version flags (priority 1)
-  - Tests written: No
-  - Implementation: No
-  - Validation: No
+- [x] RALPH-001: --help/--version flags (priority 1) ✅
+- [x] RALPH-002: init subcommand (priority 2) ✅
+- [x] RALPH-003: Pretty printer (priority 3) ✅
+- [x] RALPH-004: Stream-json integration (priority 4) ✅
+- [x] RALPH-005: install.sh (priority 5) ✅
+- [x] RALPH-006: AI docs (priority 6) ✅
+- [x] RALPH-007: Smart iteration suggestion (priority 7) ✅
 
-- [ ] RALPH-002: init subcommand (priority 2)
-  - Tests written: No
-  - Implementation: No
-  - Validation: No
-
-- [ ] RALPH-003: Pretty printer (priority 3)
-  - Fixtures created: No
-  - Tests written: No
-  - Implementation: No
-  - Validation: No
-
-- [ ] RALPH-004: Stream-json integration (priority 4)
-  - Tests written: No
-  - Implementation: No
-  - Validation: No
-
-- [ ] RALPH-005: install.sh (priority 5)
-  - Tests written: No
-  - Implementation: No
-  - Validation: No
-
-- [ ] RALPH-006: AI docs (priority 6)
-  - README updated: No
-
-- [ ] RALPH-007: Smart iteration suggestion (priority 7)
-  - Tests written: No
-  - Implementation: No
-  - Validation: No
+All tasks completed. See detailed progress notes below.
 
 ---
 

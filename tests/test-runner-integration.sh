@@ -170,6 +170,14 @@ echo "Test prompt" > "$TEMP_PROMPT"
 
 # Temporarily rename pretty-printer to simulate it being missing
 if [[ -f "$PRETTY_PRINTER" ]]; then
+  # Use trap to ensure restoration even if test fails or is interrupted
+  cleanup_pretty_printer() {
+    if [[ -f "$PRETTY_PRINTER.backup" ]]; then
+      mv "$PRETTY_PRINTER.backup" "$PRETTY_PRINTER"
+    fi
+  }
+  trap cleanup_pretty_printer EXIT
+
   mv "$PRETTY_PRINTER" "$PRETTY_PRINTER.backup"
 
   # Run should still work (fallback to raw output)
@@ -182,13 +190,15 @@ if [[ -f "$PRETTY_PRINTER" ]]; then
   assert_contains "$OUTPUT" '"type":"assistant"'
 
   # Restore pretty-printer
-  mv "$PRETTY_PRINTER.backup" "$PRETTY_PRINTER"
+  cleanup_pretty_printer
+  trap - EXIT
+
+  rm -f "$TEMP_PROMPT" "$TEMP_LOG"
+  test_pass
 else
+  rm -f "$TEMP_PROMPT" "$TEMP_LOG"
   test_skip "pretty-printer not found, cannot test fallback"
 fi
-
-rm -f "$TEMP_PROMPT" "$TEMP_LOG"
-test_pass
 
 # =============================================================================
 # Test: Runner includes --verbose flag with stream-json (regression test)

@@ -107,7 +107,7 @@ cat > "$session_dir/prd.json" << 'EOF'
 EOF
 
 # Use a nonexistent workflow via CLI - should override and show error
-output=$(cd "$RALPH_DIR" && ./ralph.sh 1 --session test-workflow-override --workflow nonexistent 2>&1 || true)
+output=$(cd "$RALPH_DIR" && timeout 2 ./ralph.sh 1 --session test-workflow-override --workflow nonexistent 2>&1 || true)
 assert_contains "$output" "ERROR: Workflow prompt not found: nonexistent" "CLI workflow should override prd.json"
 
 teardown_test_session "test-workflow-override"

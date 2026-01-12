@@ -1,0 +1,3 @@
+{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Let me analyze the requirements to understand what needs to be implemented."}]}}
+{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"This is a longer thinking block that should be truncated because it exceeds the 200 character limit. The pretty printer should handle this gracefully by showing only the first 200 characters followed by an ellipsis or similar truncation indicator."}]}}
+{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Short thought."}]}}

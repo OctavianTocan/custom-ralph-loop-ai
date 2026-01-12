@@ -11,8 +11,160 @@ MAX_ITERATIONS=10
 SESSION_DIR=""
 FORCE=false
 WORKFLOW=""
+VERSION="1.0.0"
+
+# ============================================================================
+# Handle --help and --version flags FIRST (before session resolution)
+# ============================================================================
+show_help() {
+  cat <<EOF
+Ralph Autonomous Coding Loop
+
+Usage:
+  ralph.sh [iterations] --session <name> [options]
+  ralph.sh <session-name> [iterations] [options]
+
+Options:
+  --session <name>    Session name (from sessions/ directory)
+  --iterations <n>    Number of iterations (or 'auto' for suggested count)
+  --force, -f         Force start even if session is running
+  --workflow <name>   Use workflow from .claude/workflows/
+  --help, -h          Show this help message
+  --version, -v       Show version information
+
+Examples:
+  ralph.sh 25 --session my-feature
+  ralph.sh my-feature 25
+  ralph.sh --session my-feature --force
+  ralph.sh --session my-feature --iterations auto
+
+Available sessions:
+EOF
+  if [[ -d "$SCRIPT_DIR/sessions" ]]; then
+    ls -1 "$SCRIPT_DIR/sessions/" 2>/dev/null | sed 's/^/  /' || echo "  (none)"
+  else
+    echo "  (none)"
+  fi
+  echo ""
+}
+
+show_version() {
+  # Try to get version from git tags
+  if command -v git &> /dev/null && [[ -d "$SCRIPT_DIR/.git" ]]; then
+    GIT_VERSION=$(git -C "$SCRIPT_DIR" describe --tags 2>/dev/null || git -C "$SCRIPT_DIR" log -1 --format="%h" 2>/dev/null || echo "")
+    if [[ -n "$GIT_VERSION" ]]; then
+      echo "ralph-ai-coding-loop $GIT_VERSION"
+      exit 0
+    fi
+  fi
+  # Fallback to hardcoded version
+  echo "ralph-ai-coding-loop v$VERSION"
+}
+
+# ============================================================================
+# Handle init subcommand FIRST (before session resolution)
+# ============================================================================
+if [[ "$1" == "init" ]]; then
+  SESSION_NAME="$2"
+
+  if [[ -z "$SESSION_NAME" ]]; then
+    echo "Error: Session name required"
+    echo "Usage: ralph.sh init <session-name>"
+    exit 1
+  fi
+
+  SESSION_PATH="$SCRIPT_DIR/sessions/$SESSION_NAME"
+
+  # Check if session already exists
+  if [[ -d "$SESSION_PATH" ]]; then
+    echo "Error: Session '$SESSION_NAME' already exists at $SESSION_PATH"
+    exit 1
+  fi
+
+  # Create session directory
+  mkdir -p "$SESSION_PATH"
+
+  # Generate template prd.json
+  cat > "$SESSION_PATH/prd.json" <<'EOF'
+{
+  "branchName": "ralph/SESSION_NAME",
+  "agent": "claude",
+  "model": "sonnet",
+  "validationCommands": {},
+  "userStories": [
+    {
+      "id": "STORY-001",
+      "title": "First task to implement",
+      "acceptanceCriteria": [
+        "Describe what success looks like",
+        "Add measurable criteria"
+      ],
+      "priority": 1,
+      "complexity": "medium",
+      "passes": false
+    }
+  ]
+}
+EOF
+
+  # Replace placeholder with actual session name (portable for macOS and Linux)
+  sed "s/SESSION_NAME/$SESSION_NAME/g" "$SESSION_PATH/prd.json" > "$SESSION_PATH/prd.json.tmp"
+  mv "$SESSION_PATH/prd.json.tmp" "$SESSION_PATH/prd.json"
+
+  # Create progress.txt
+  cat > "$SESSION_PATH/progress.txt" <<EOF
+# Ralph Progress Log
+
+Session: $SESSION_NAME
+Location: sessions/$SESSION_NAME/
+Branch: ralph/$SESSION_NAME
+
+---
+
+## Codebase Patterns
+
+(Add discovered patterns here)
+
+---
+EOF
+
+  # Create learnings.md
+  cat > "$SESSION_PATH/learnings.md" <<EOF
+# Learnings: $SESSION_NAME
+
+Session: $SESSION_NAME
+Branch: ralph/$SESSION_NAME
+
+---
+EOF
+
+  echo ""
+  echo "Session created: $SESSION_NAME"
+  echo ""
+  echo "Next steps:"
+  echo "  1. Edit sessions/$SESSION_NAME/prd.json to define your tasks"
+  echo "  2. Run: ./ralph.sh --session $SESSION_NAME"
+  echo ""
+
+  exit 0
+fi
+
+# Check for --help or --version BEFORE parsing other arguments
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+    --version|-v)
+      show_version
+      exit 0
+      ;;
+  esac
+done
 
 # Parse arguments
+ITERATIONS_AUTO=false
 while [[ $# -gt 0 ]]; do
   case $1 in
     --session)
@@ -25,6 +177,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --workflow)
       WORKFLOW="$2"
+      shift 2
+      ;;
+    --iterations)
+      if [[ "$2" == "auto" ]]; then
+        ITERATIONS_AUTO=true
+      else
+        MAX_ITERATIONS="$2"
+      fi
       shift 2
       ;;
     *)
@@ -271,6 +431,56 @@ echo "Successfully on branch: $BRANCH_NAME"
 echo ""
 
 # ============================================================================
+# ITERATION SUGGESTION
+# ============================================================================
+SUGGESTED_ITERATIONS=0
+SUGGESTED_SMALL=0
+SUGGESTED_MEDIUM=0
+SUGGESTED_LARGE=0
+
+if command -v jq &> /dev/null; then
+  # Check for explicit suggestedIterations first
+  explicit_suggested=$(jq -r '.suggestedIterations // empty' "$SESSION_DIR/prd.json" 2>/dev/null)
+  if [[ -n "$explicit_suggested" && "$explicit_suggested" != "null" ]]; then
+    SUGGESTED_ITERATIONS="$explicit_suggested"
+  else
+    # Calculate from userStories complexity (only incomplete tasks)
+    while IFS= read -r complexity; do
+      case "$complexity" in
+        small) ((SUGGESTED_SMALL++)) || true; ((SUGGESTED_ITERATIONS+=1)) || true ;;
+        large) ((SUGGESTED_LARGE++)) || true; ((SUGGESTED_ITERATIONS+=3)) || true ;;
+        *) ((SUGGESTED_MEDIUM++)) || true; ((SUGGESTED_ITERATIONS+=2)) || true ;;  # default is medium
+      esac
+    done < <(jq -r '.userStories[] | select(.passes != true) | .complexity // "medium"' "$SESSION_DIR/prd.json" 2>/dev/null)
+  fi
+else
+  # Fallback without jq - check for suggestedIterations
+  explicit_suggested=$(grep -o '"suggestedIterations"[[:space:]]*:[[:space:]]*[0-9]*' "$SESSION_DIR/prd.json" 2>/dev/null | grep -o '[0-9]*' | head -1)
+  if [[ -n "$explicit_suggested" ]]; then
+    SUGGESTED_ITERATIONS="$explicit_suggested"
+  else
+    # Count tasks by complexity (simplified without jq)
+    task_count=$(grep -c '"passes"[[:space:]]*:[[:space:]]*false' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
+    SUGGESTED_ITERATIONS=$((task_count * 2))  # Default to medium complexity
+  fi
+fi
+
+# Use suggested if --iterations auto was specified
+if [[ "$ITERATIONS_AUTO" == true && -n "$SUGGESTED_ITERATIONS" && "$SUGGESTED_ITERATIONS" -gt 0 ]]; then
+  MAX_ITERATIONS="$SUGGESTED_ITERATIONS"
+fi
+
+# Build breakdown string
+BREAKDOWN=""
+if [[ $SUGGESTED_SMALL -gt 0 || $SUGGESTED_MEDIUM -gt 0 || $SUGGESTED_LARGE -gt 0 ]]; then
+  parts=()
+  [[ $SUGGESTED_SMALL -gt 0 ]] && parts+=("$SUGGESTED_SMALL small")
+  [[ $SUGGESTED_MEDIUM -gt 0 ]] && parts+=("$SUGGESTED_MEDIUM medium")
+  [[ $SUGGESTED_LARGE -gt 0 ]] && parts+=("$SUGGESTED_LARGE large")
+  BREAKDOWN=$(IFS=', '; echo "${parts[*]}")
+fi
+
+# ============================================================================
 # STARTUP BANNER
 # ============================================================================
 C='\033[0;36m'
@@ -281,14 +491,21 @@ N='\033[0m'
 BOLD='\033[1m'
 
 echo ""
-echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
-echo -e "${C}║${N}                    ${BOLD}${G}RALPH${N} ${D}AUTONOMOUS CODING LOOP${N}                    ${C}║${N}"
-echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
+echo -e "${C}========================================================================${N}"
+echo -e "${BOLD}${G}RALPH${N} ${D}AUTONOMOUS CODING LOOP${N}"
+echo -e "${C}========================================================================${N}"
 echo ""
 echo -e "  ${BOLD}Session:${N}    ${C}$(basename "$SESSION_DIR")${N}"
 echo -e "  ${BOLD}Agent:${N}      ${G}$AGENT${N}"
 [[ -n "$MODEL" ]] && echo -e "  ${BOLD}Model:${N}      ${Y}$MODEL${N}"
 echo -e "  ${BOLD}Iterations:${N} ${BOLD}$MAX_ITERATIONS${N}"
+if [[ -n "$SUGGESTED_ITERATIONS" && "$SUGGESTED_ITERATIONS" -gt 0 ]]; then
+  if [[ -n "$BREAKDOWN" ]]; then
+    echo -e "  ${BOLD}Suggested:${N}  ${Y}$SUGGESTED_ITERATIONS${N} ${D}($BREAKDOWN)${N}"
+  else
+    echo -e "  ${BOLD}Suggested:${N}  ${Y}$SUGGESTED_ITERATIONS${N}"
+  fi
+fi
 echo -e "  ${BOLD}PID:${N}        ${D}$$${N}"
 echo ""
 echo -e "  ${BOLD}Monitor:${N}    ${D}tail -f${N} $LOG_FILE"
@@ -296,7 +513,7 @@ echo -e "  ${BOLD}Status:${N}     ${D}./status.sh${N}"
 echo -e "  ${BOLD}Watch:${N}      ${D}./watch.sh${N}"
 echo -e "  ${BOLD}Stop:${N}       ${D}kill $$${N}"
 echo ""
-echo -e "${C}════════════════════════════════════════════════════════════════════════${N}"
+echo -e "${C}========================================================================${N}"
 echo ""
 
 # Initialize log
@@ -319,9 +536,9 @@ BOLD='\033[1m'
 
 for i in $(seq 1 $MAX_ITERATIONS); do
   echo ""
-  echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-  echo -e "${C}║${N}  ${BOLD}Iteration $i${N} of ${BOLD}$MAX_ITERATIONS${N}  ${N}$(date)${N}  ${C}║${N}" | tee -a "$LOG_FILE"
-  echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+  echo -e "${C}========================================================================${N}" | tee -a "$LOG_FILE"
+  echo -e "${C}Iteration $i of $MAX_ITERATIONS${N}  $(date)" | tee -a "$LOG_FILE"
+  echo -e "${C}========================================================================${N}" | tee -a "$LOG_FILE"
   echo "" | tee -a "$LOG_FILE"
 
   PROMPT="# Session Context
@@ -358,10 +575,10 @@ $WORKFLOW_PROMPT"
   if tail -100 "$LOG_FILE" | grep -q "<promise>COMPLETE</promise>"; then
     echo "" | tee -a "$LOG_FILE"
     G='\033[0;32m'
-    echo -e "${G}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-    echo -e "${G}║${N}                    ${BOLD}${G}✓ RALPH COMPLETE${N}                    ${G}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${G}║${N}              ${N}Agent signaled completion: $(date)${N}              ${G}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${G}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
+    echo -e "Agent signaled completion: $(date)" | tee -a "$LOG_FILE"
+    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
     echo ""
     exit 0
   fi
@@ -369,10 +586,10 @@ $WORKFLOW_PROMPT"
   if tail -100 "$LOG_FILE" | grep -q "<promise>BLOCKED"; then
     echo "" | tee -a "$LOG_FILE"
     R='\033[0;31m'
-    echo -e "${R}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-    echo -e "${R}║${N}                    ${BOLD}${R}✗ RALPH BLOCKED${N}                    ${R}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${R}║${N}              ${N}Check log file: $LOG_FILE${N}              ${R}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${R}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+    echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo -e "${R}RALPH BLOCKED${N}" | tee -a "$LOG_FILE"
+    echo -e "Check log file: $LOG_FILE" | tee -a "$LOG_FILE"
+    echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
     echo ""
     exit 1
   fi
@@ -385,11 +602,11 @@ $WORKFLOW_PROMPT"
     if [[ "$TOTAL_STORIES" -gt 0 && "$TOTAL_STORIES" == "$PASSED_STORIES" ]]; then
       echo "" | tee -a "$LOG_FILE"
       G='\033[0;32m'
-      echo -e "${G}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}║${N}                    ${BOLD}${G}✓ RALPH COMPLETE${N}                    ${G}║${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}║${N}              ${N}All $PASSED_STORIES/$TOTAL_STORIES stories passed${N}              ${G}║${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}║${N}                        ${N}$(date)${N}                        ${G}║${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
+      echo -e "All $PASSED_STORIES/$TOTAL_STORIES stories passed" | tee -a "$LOG_FILE"
+      echo -e "$(date)" | tee -a "$LOG_FILE"
+      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
       echo ""
       exit 0
     else
@@ -403,9 +620,9 @@ done
 
 echo "" | tee -a "$LOG_FILE"
 Y='\033[1;33m'
-echo -e "${Y}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-echo -e "${Y}║${N}                  ${BOLD}MAX ITERATIONS REACHED${N}                  ${Y}║${N}" | tee -a "$LOG_FILE"
-echo -e "${Y}║${N}              ${N}Run again to continue: $(date)${N}              ${Y}║${N}" | tee -a "$LOG_FILE"
-echo -e "${Y}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+echo -e "${Y}MAX ITERATIONS REACHED${N}" | tee -a "$LOG_FILE"
+echo -e "Run again to continue: $(date)" | tee -a "$LOG_FILE"
+echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
 echo ""
 exit 1

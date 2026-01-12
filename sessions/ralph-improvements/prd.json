@@ -96,7 +96,7 @@
         "VALIDATE: Manual test with: echo '{...}' | ./ralph-pretty-print.sh"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "CRITICAL: This is the fix for 'no visibility into agent thinking'. The runner must: (1) call claude with --output-format stream-json, (2) tee the raw JSON to the log file, (3) pipe through ralph-pretty-print.sh for terminal display. Fallback gracefully if pretty-printer missing."
     },
     {

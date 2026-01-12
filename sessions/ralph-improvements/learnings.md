@@ -126,3 +126,45 @@ output-formatting: stream-json-pretty-printing
 testing: fixture-based-testing
 patterns: graceful-degradation
 cli-tools: stdin-stdout-processing
+## RALPH-004 - Update run-claude.sh to use stream-json with pretty-printer
+Date: 2026-01-12 17:30
+Status: COMPLETED
+
+### What Was Done
+- Created tests/test-runner-integration.sh with mock claude binary (8 comprehensive test cases)
+- Mock claude simulates stream-json output with all event types (thinking, tool_use, result, text)
+- Updated run-claude.sh to use --output-format stream-json by default (instead of plain text)
+- Implemented tee + pipe pattern: raw JSON to log file, pretty-printed to terminal
+- Added fallback handling when pretty-printer is missing (shows raw JSON with warning)
+- Maintained backwards compatibility: RALPH_JSON_OUTPUT=true still works for cost tracking
+- All 8 integration tests pass, plus all existing tests (135 total tests pass)
+
+### Files Changed
+- tests/test-runner-integration.sh: New integration test file with 8 test cases and mock claude binary
+- runners/run-claude.sh: Updated to use stream-json and pipe through pretty-printer (lines 65-121)
+- sessions/ralph-improvements/prd.json: Updated RALPH-004 passes to true
+- sessions/ralph-improvements/learnings.md: This entry
+- sessions/ralph-improvements/progress.txt: Appended task summary
+
+### Learnings
+- **Tee + pipe pattern**: Using `claude | tee -a "$LOG_FILE" | "$PRETTY_PRINTER"` achieves dual output (raw to log, pretty to terminal) in one pipeline
+- **Mock binaries for testing**: Creating a temporary mock `claude` binary in $TEMP_BIN allows testing without real API calls
+- **PATH manipulation in tests**: Adding `$TEMP_BIN` to PATH before real binary location enables mocking
+- **Conditional output format**: Default to stream-json for better UX, but still support JSON mode via RALPH_JSON_OUTPUT for cost tracking
+- **Graceful fallback**: Check if pretty-printer exists and is executable (`-x`) before piping, fallback to raw output if missing
+- **Test-first with mocks**: Created fixtures + mock binary BEFORE implementation, tests failed as expected, then implementation made them pass
+- **Script path resolution**: Using `$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)` finds project root from runner script location
+- **Trap cleanup**: Using `trap cleanup_mock EXIT` ensures temp directories are cleaned up even if tests fail
+
+### Applicable To Future Tasks
+- RALPH-005+ (all tasks): Use tee + pipe pattern for dual output (logging + display) in any CLI tool
+- Any runner script: Mock external binaries with temp directories + PATH manipulation for testing
+- Integration testing: This pattern (mock binary + fixtures + PATH manipulation) works for any external CLI tool
+- Stream processing: The tee pattern works for any line-by-line streaming output
+
+### Tags
+stream-json: runner-integration
+testing: mock-binaries
+patterns: tee-pipe-dual-output
+cli-tools: graceful-fallback
+backwards-compatibility: json-output-mode

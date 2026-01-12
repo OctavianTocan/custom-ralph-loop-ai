@@ -66,6 +66,9 @@ fi
 # This provides cost tracking, token counts, etc.
 if [[ "${RALPH_JSON_OUTPUT:-false}" == "true" ]]; then
   CMD_ARGS+=("--output-format" "json")
+else
+  # Default: Use stream-json with pretty-printer for better visibility
+  CMD_ARGS+=("--output-format" "stream-json")
 fi
 
 # Optional: Ephemeral session (no disk storage)
@@ -77,6 +80,10 @@ fi
 if [[ -n "${RALPH_SYSTEM_PROMPT_APPEND:-}" ]]; then
   CMD_ARGS+=("--append-system-prompt" "$RALPH_SYSTEM_PROMPT_APPEND")
 fi
+
+# Find pretty-printer script (should be in same dir as ralph.sh)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PRETTY_PRINTER="$SCRIPT_DIR/ralph-pretty-print.sh"
 
 # Run claude with prompt from file
 # Output to both console and log file (real-time)
@@ -102,8 +109,15 @@ if [[ "${RALPH_JSON_OUTPUT:-false}" == "true" ]]; then
     echo "$RESULT"
   fi
 else
-  # Standard text mode: stream output in real-time
-  claude "${CMD_ARGS[@]}" < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE" || true
+  # Stream-json mode: Pipe through pretty-printer for terminal, tee raw JSON to log
+  if [[ -x "$PRETTY_PRINTER" ]]; then
+    # Pretty-printer available: tee raw JSON to log, pipe through pretty-printer for display
+    claude "${CMD_ARGS[@]}" < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE" | "$PRETTY_PRINTER" || true
+  else
+    # Pretty-printer not found: fallback to showing raw JSON
+    echo -e "${Y}Warning: ralph-pretty-print.sh not found, showing raw output${N}" >&2
+    claude "${CMD_ARGS[@]}" < "$PROMPT_FILE" 2>&1 | tee -a "$LOG_FILE" || true
+  fi
 fi
 
 echo ""

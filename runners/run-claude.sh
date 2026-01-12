@@ -53,7 +53,7 @@ echo -e "${C}╚═════════════════════�
 echo ""
 
 # Build command arguments
-CMD_ARGS=("-p" "--dangerously-skip-permissions")
+CMD_ARGS=("-p" "--verbose" "--dangerously-skip-permissions")
 
 # Add model if specified
 if [[ -n "$MODEL" ]]; then

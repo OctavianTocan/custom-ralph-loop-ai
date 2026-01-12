@@ -191,6 +191,62 @@ rm -f "$TEMP_PROMPT" "$TEMP_LOG"
 test_pass
 
 # =============================================================================
+# Test: Runner includes --verbose flag with stream-json (regression test)
+# =============================================================================
+test_start "runner passes --verbose flag when using stream-json format"
+TEMP_PROMPT=$(mktemp)
+TEMP_LOG=$(mktemp)
+echo "Test prompt" > "$TEMP_PROMPT"
+
+# Create mock claude that validates --verbose is present
+cat > "$MOCK_CLAUDE" << 'EOF'
+#!/bin/bash
+# Regression test: check that --verbose is included with stream-json
+HAS_VERBOSE=false
+HAS_STREAM_JSON=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verbose)
+      HAS_VERBOSE=true
+      shift
+      ;;
+    --output-format)
+      if [[ "$2" == "stream-json" ]]; then
+        HAS_STREAM_JSON=true
+      fi
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
+
+# If using stream-json without --verbose, error (like real Claude CLI)
+if [[ "$HAS_STREAM_JSON" == "true" && "$HAS_VERBOSE" != "true" ]]; then
+  echo "Error: When using --print, --output-format=stream-json requires --verbose" >&2
+  exit 1
+fi
+
+# Success: output valid stream-json
+echo '{"type":"assistant","message":{"content":[{"type":"text","text":"Success"}]}}'
+EOF
+chmod +x "$MOCK_CLAUDE"
+
+# Run the runner - should succeed (not get the error)
+OUTPUT=$("$RUNNER" "$TEMP_PROMPT" "$TEMP_LOG" 2>&1)
+EXIT_CODE=$?
+
+# Should succeed
+assert_exit_code 0 $EXIT_CODE
+# Should NOT contain the error message
+assert_not_contains "$OUTPUT" "requires --verbose"
+
+rm -f "$TEMP_PROMPT" "$TEMP_LOG"
+test_pass
+
+# =============================================================================
 # Test: RALPH_JSON_OUTPUT=true still works (backwards compatibility)
 # =============================================================================
 test_start "RALPH_JSON_OUTPUT=true environment variable still works"

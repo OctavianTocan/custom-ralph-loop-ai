@@ -1,0 +1,7 @@
+🤔 I need to read the configuration file first.
+🔧 Read: config.json
+✅ { "version": "1.0.0" }
+🤔 The config shows version 1.0.0, I'll update it to 2.0.0.
+🔧 Edit: config.json
+✅ File edited successfully
+💬 I've successfully updated the version to 2.0.0.

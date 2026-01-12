@@ -1,0 +1,5 @@
+{"type":"assistant","message":{"content":[{"type":"text","text":"Valid JSON line"}]}}
+{invalid json here
+{"type":"assistant","message":{"content":[{"type":"text"}]}}
+{"type":"assistant","message":{"content":[{"type":"unknown_type","data":"This type doesn't exist"}]}}
+{"type":"assistant","message":{"content":[{"type":"text","text":"Recovery after errors"}]}}

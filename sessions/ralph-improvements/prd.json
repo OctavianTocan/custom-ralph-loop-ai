@@ -74,7 +74,7 @@
         "VALIDATE: ./tests/test-runner.sh passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "The pretty-printer reads newline-delimited JSON from stdin. Event types: assistant.message.content[0].type can be 'thinking', 'tool_use', or 'text'. Also handle 'result' type events. Use jq for parsing. Colors: thinking=dim, tool_use=cyan, text=green, result=yellow. Truncate long content (>200 chars for thinking, >500 for results)."
     },
     {

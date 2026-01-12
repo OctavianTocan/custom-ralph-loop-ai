@@ -73,3 +73,56 @@ cli-subcommands: init
 session-management: creation
 testing: test-first-success
 patterns: heredoc-templates
+## RALPH-003 - Create pretty-printer for stream-json output
+Date: 2026-01-12 17:23
+Status: COMPLETED
+
+### What Was Done
+- Created comprehensive test fixtures in tests/fixtures/stream-json-samples/ (5 fixture files: thinking.jsonl, tool-calls.jsonl, text-output.jsonl, mixed-session.jsonl, error-cases.jsonl)
+- Created expected output fixtures in tests/fixtures/expected-output/ (3 files)
+- Implemented tests/test-pretty-printer.sh with 12 test cases
+- Implemented ralph-pretty-print.sh that reads stream-json from stdin
+- Pretty printer formats events with emojis: 🤔 (thinking), 🔧 (tool_use), ✅ (result), 💬 (text)
+- Implemented truncation: thinking at 200 chars, results at 500 chars
+- Supports --no-color flag to disable ANSI codes
+- Supports --help flag with usage information
+- Handles malformed JSON gracefully (continues processing)
+- Falls back to grep/sed parsing when jq not available
+
+### Files Changed
+- tests/fixtures/stream-json-samples/thinking.jsonl: New fixture
+- tests/fixtures/stream-json-samples/tool-calls.jsonl: New fixture
+- tests/fixtures/stream-json-samples/text-output.jsonl: New fixture
+- tests/fixtures/stream-json-samples/mixed-session.jsonl: New fixture
+- tests/fixtures/stream-json-samples/error-cases.jsonl: New fixture
+- tests/fixtures/expected-output/thinking-pretty.txt: New expected output
+- tests/fixtures/expected-output/tool-calls-pretty.txt: New expected output
+- tests/fixtures/expected-output/mixed-pretty.txt: New expected output
+- tests/test-pretty-printer.sh: New test file with 12 test cases
+- ralph-pretty-print.sh: New pretty printer script (223 lines)
+- sessions/ralph-improvements/prd.json: Updated RALPH-003 passes to true
+- sessions/ralph-improvements/learnings.md: This entry
+- sessions/ralph-improvements/progress.txt: Appended task summary
+
+### Learnings
+- **Test-first with fixtures**: Created fixture files BEFORE tests, then verified tests fail, then implemented. This caught edge cases early.
+- **Emoji rendering**: Using Unicode emojis (🤔🔧✅💬) provides clear visual feedback without requiring terminal color support
+- **Truncation pattern**: Using bash string slicing ${str:0:limit}... is cleaner than sed/awk for length limiting
+- **Graceful fallback**: When jq unavailable, grep/sed parsing provides basic functionality. Critical for environments without jq.
+- **Stream processing**: Using `while IFS= read -r line` processes JSONL correctly, handling one event per line
+- **jq parsing pattern**: `jq -r '.path // empty'` extracts fields with fallback to empty string, avoiding null strings
+- **File path extraction**: For tool calls, extract .input.file_path or .input.command to show what tool is operating on
+- **Color management**: Global variables (DIM, CYAN, GREEN, YELLOW, NC) + --no-color flag provides flexible color control
+- **Error resilience**: Skip invalid JSON lines silently (no errors to stderr) to keep output clean during streaming
+
+### Applicable To Future Tasks
+- RALPH-004 (stream-json integration): Will use this pretty printer by piping claude output through it
+- Any future CLI output formatting: Use emoji + color pattern for visual clarity
+- Test fixture approach: Create sample inputs + expected outputs for deterministic testing
+- Stream processing: This pattern applies to any line-by-line event processing
+
+### Tags
+output-formatting: stream-json-pretty-printing
+testing: fixture-based-testing
+patterns: graceful-degradation
+cli-tools: stdin-stdout-processing

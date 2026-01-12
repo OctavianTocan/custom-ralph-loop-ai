@@ -1,0 +1,7 @@
+{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"I need to read the configuration file first."}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_01","name":"Read","input":{"file_path":"config.json"}}]}}
+{"type":"result","subtype":"success","result":"{ \"version\": \"1.0.0\" }"}
+{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"The config shows version 1.0.0, I'll update it to 2.0.0."}]}}
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_02","name":"Edit","input":{"file_path":"config.json","old_string":"1.0.0","new_string":"2.0.0"}}]}}
+{"type":"result","subtype":"success","result":"File edited successfully"}
+{"type":"assistant","message":{"content":[{"type":"text","text":"I've successfully updated the version to 2.0.0."}]}}

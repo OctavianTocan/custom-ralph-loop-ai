@@ -26,6 +26,7 @@ Usage:
 
 Options:
   --session <name>    Session name (from sessions/ directory)
+  --iterations <n>    Number of iterations (or 'auto' for suggested count)
   --force, -f         Force start even if session is running
   --workflow <name>   Use workflow from .claude/workflows/
   --help, -h          Show this help message
@@ -35,6 +36,7 @@ Examples:
   ralph.sh 25 --session my-feature
   ralph.sh my-feature 25
   ralph.sh --session my-feature --force
+  ralph.sh --session my-feature --iterations auto
 
 Available sessions:
 EOF
@@ -98,6 +100,7 @@ if [[ "$1" == "init" ]]; then
         "Add measurable criteria"
       ],
       "priority": 1,
+      "complexity": "medium",
       "passes": false
     }
   ]
@@ -160,6 +163,7 @@ for arg in "$@"; do
 done
 
 # Parse arguments
+ITERATIONS_AUTO=false
 while [[ $# -gt 0 ]]; do
   case $1 in
     --session)
@@ -172,6 +176,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --workflow)
       WORKFLOW="$2"
+      shift 2
+      ;;
+    --iterations)
+      if [[ "$2" == "auto" ]]; then
+        ITERATIONS_AUTO=true
+      else
+        MAX_ITERATIONS="$2"
+      fi
       shift 2
       ;;
     *)
@@ -418,6 +430,56 @@ echo "Successfully on branch: $BRANCH_NAME"
 echo ""
 
 # ============================================================================
+# ITERATION SUGGESTION
+# ============================================================================
+SUGGESTED_ITERATIONS=0
+SUGGESTED_SMALL=0
+SUGGESTED_MEDIUM=0
+SUGGESTED_LARGE=0
+
+if command -v jq &> /dev/null; then
+  # Check for explicit suggestedIterations first
+  explicit_suggested=$(jq -r '.suggestedIterations // empty' "$SESSION_DIR/prd.json" 2>/dev/null)
+  if [[ -n "$explicit_suggested" && "$explicit_suggested" != "null" ]]; then
+    SUGGESTED_ITERATIONS="$explicit_suggested"
+  else
+    # Calculate from userStories complexity (only incomplete tasks)
+    while IFS= read -r complexity; do
+      case "$complexity" in
+        small) ((SUGGESTED_SMALL++)) || true; ((SUGGESTED_ITERATIONS+=1)) || true ;;
+        large) ((SUGGESTED_LARGE++)) || true; ((SUGGESTED_ITERATIONS+=3)) || true ;;
+        *) ((SUGGESTED_MEDIUM++)) || true; ((SUGGESTED_ITERATIONS+=2)) || true ;;  # default is medium
+      esac
+    done < <(jq -r '.userStories[] | select(.passes != true) | .complexity // "medium"' "$SESSION_DIR/prd.json" 2>/dev/null)
+  fi
+else
+  # Fallback without jq - check for suggestedIterations
+  explicit_suggested=$(grep -o '"suggestedIterations"[[:space:]]*:[[:space:]]*[0-9]*' "$SESSION_DIR/prd.json" 2>/dev/null | grep -o '[0-9]*' | head -1)
+  if [[ -n "$explicit_suggested" ]]; then
+    SUGGESTED_ITERATIONS="$explicit_suggested"
+  else
+    # Count tasks by complexity (simplified without jq)
+    task_count=$(grep -c '"passes"[[:space:]]*:[[:space:]]*false' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
+    SUGGESTED_ITERATIONS=$((task_count * 2))  # Default to medium complexity
+  fi
+fi
+
+# Use suggested if --iterations auto was specified
+if [[ "$ITERATIONS_AUTO" == true && -n "$SUGGESTED_ITERATIONS" && "$SUGGESTED_ITERATIONS" -gt 0 ]]; then
+  MAX_ITERATIONS="$SUGGESTED_ITERATIONS"
+fi
+
+# Build breakdown string
+BREAKDOWN=""
+if [[ $SUGGESTED_SMALL -gt 0 || $SUGGESTED_MEDIUM -gt 0 || $SUGGESTED_LARGE -gt 0 ]]; then
+  parts=()
+  [[ $SUGGESTED_SMALL -gt 0 ]] && parts+=("$SUGGESTED_SMALL small")
+  [[ $SUGGESTED_MEDIUM -gt 0 ]] && parts+=("$SUGGESTED_MEDIUM medium")
+  [[ $SUGGESTED_LARGE -gt 0 ]] && parts+=("$SUGGESTED_LARGE large")
+  BREAKDOWN=$(IFS=', '; echo "${parts[*]}")
+fi
+
+# ============================================================================
 # STARTUP BANNER
 # ============================================================================
 C='\033[0;36m'
@@ -436,6 +498,13 @@ echo -e "  ${BOLD}Session:${N}    ${C}$(basename "$SESSION_DIR")${N}"
 echo -e "  ${BOLD}Agent:${N}      ${G}$AGENT${N}"
 [[ -n "$MODEL" ]] && echo -e "  ${BOLD}Model:${N}      ${Y}$MODEL${N}"
 echo -e "  ${BOLD}Iterations:${N} ${BOLD}$MAX_ITERATIONS${N}"
+if [[ -n "$SUGGESTED_ITERATIONS" && "$SUGGESTED_ITERATIONS" -gt 0 ]]; then
+  if [[ -n "$BREAKDOWN" ]]; then
+    echo -e "  ${BOLD}Suggested:${N}  ${Y}$SUGGESTED_ITERATIONS${N} ${D}($BREAKDOWN)${N}"
+  else
+    echo -e "  ${BOLD}Suggested:${N}  ${Y}$SUGGESTED_ITERATIONS${N}"
+  fi
+fi
 echo -e "  ${BOLD}PID:${N}        ${D}$$${N}"
 echo ""
 echo -e "  ${BOLD}Monitor:${N}    ${D}tail -f${N} $LOG_FILE"

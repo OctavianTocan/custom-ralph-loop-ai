@@ -302,25 +302,23 @@ When running `claude -p --output-format stream-json`, the output is newline-deli
 
 ---
 
-## 2026-01-12 - RALPH-006
+## 2026-01-12 - RALPH-007
 
-- Added "Installation for AI Agents" section to README.md
-- Quick install one-liner: git clone + install.sh + cleanup
-- Manual install steps with verification commands
-- Custom installation directory examples
-- Verification commands with expected outputs
-- First session creation example using init command
-- Troubleshooting: permissions, jq, Claude CLI
-- Note about Claude Chrome MCP as alternative
-- All commands verified to work when copy-pasted
-- Files changed: README.md (~100 lines added)
-- Validation status: ALL PASSED (154/154 tests)
-- Browser verification: SKIPPED (documentation only)
+- Added smart iteration suggestion based on task complexity
+- Complexity weights: small=1, medium=2, large=3 iterations
+- Display: "Suggested: 6 (1 small, 2 medium, 1 large)"
+- --iterations auto uses suggested count automatically
+- suggestedIterations field in prd.json overrides calculation
+- Updated init template to include complexity field
+- Created 17 fast tests (script content checks)
+- Files changed: ralph.sh, tests/test-iteration-suggestion.sh
+- Validation status: ALL PASSED (162/162 tests)
+- Browser verification: SKIPPED (CLI tool only)
 
 **Learnings:**
-- AI agents need explicit commands with expected outputs
-- Verification steps help AI agents confirm success
-- Troubleshooting sections prevent common installation failures
-- Testing actual commands ensures documentation accuracy
+- Bash ((var++)) fails with set -e when var=0, use || true
+- Subshell $() variables don't export, use direct assignment
+- Fast tests: check script content instead of running full execution
+- Only count incomplete tasks (passes != true)
 
 ---

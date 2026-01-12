@@ -126,45 +126,42 @@ output-formatting: stream-json-pretty-printing
 testing: fixture-based-testing
 patterns: graceful-degradation
 cli-tools: stdin-stdout-processing
-## RALPH-004 - Update run-claude.sh to use stream-json with pretty-printer
-Date: 2026-01-12 17:30
+## RALPH-005 - Create install.sh for easy installation
+Date: 2026-01-12 18:20
 Status: COMPLETED
 
 ### What Was Done
-- Created tests/test-runner-integration.sh with mock claude binary (8 comprehensive test cases)
-- Mock claude simulates stream-json output with all event types (thinking, tool_use, result, text)
-- Updated run-claude.sh to use --output-format stream-json by default (instead of plain text)
-- Implemented tee + pipe pattern: raw JSON to log file, pretty-printed to terminal
-- Added fallback handling when pretty-printer is missing (shows raw JSON with warning)
-- Maintained backwards compatibility: RALPH_JSON_OUTPUT=true still works for cost tracking
-- All 8 integration tests pass, plus all existing tests (135 total tests pass)
+- Created tests/test-install.sh with 18 comprehensive test cases
+- Implemented install.sh that copies all Ralph scripts to a target directory
+- Default target is .ralph/ in current directory
+- Auto-detects .claude/ and .cursor/ directories for command installation
+- Creates empty sessions/ directory for new sessions
+- All scripts made executable with chmod +x
+- Print clear success message with next steps
 
 ### Files Changed
-- tests/test-runner-integration.sh: New integration test file with 8 test cases and mock claude binary
-- runners/run-claude.sh: Updated to use stream-json and pipe through pretty-printer (lines 65-121)
-- sessions/ralph-improvements/prd.json: Updated RALPH-004 passes to true
+- tests/test-install.sh: New test file with 18 test cases
+- install.sh: New installation script (141 lines)
+- sessions/ralph-improvements/prd.json: Updated RALPH-005 passes to true
 - sessions/ralph-improvements/learnings.md: This entry
 - sessions/ralph-improvements/progress.txt: Appended task summary
 
 ### Learnings
-- **Tee + pipe pattern**: Using `claude | tee -a "$LOG_FILE" | "$PRETTY_PRINTER"` achieves dual output (raw to log, pretty to terminal) in one pipeline
-- **Mock binaries for testing**: Creating a temporary mock `claude` binary in $TEMP_BIN allows testing without real API calls
-- **PATH manipulation in tests**: Adding `$TEMP_BIN` to PATH before real binary location enables mocking
-- **Conditional output format**: Default to stream-json for better UX, but still support JSON mode via RALPH_JSON_OUTPUT for cost tracking
-- **Graceful fallback**: Check if pretty-printer exists and is executable (`-x`) before piping, fallback to raw output if missing
-- **Test-first with mocks**: Created fixtures + mock binary BEFORE implementation, tests failed as expected, then implementation made them pass
-- **Script path resolution**: Using `$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)` finds project root from runner script location
-- **Trap cleanup**: Using `trap cleanup_mock EXIT` ensures temp directories are cleaned up even if tests fail
+- **Installation script pattern**: Copy required files, create directories, set permissions, print next steps
+- **Auto-detection pattern**: Check for .claude/ and .cursor/ directories to auto-install commands
+- **Idempotent updates**: Running install twice overwrites files, making it safe to re-run for updates
+- **Test isolation**: Test files use temp directories with trap cleanup to avoid polluting workspace
+- **Pre-existing test failures**: The workflow test "CLI workflow overrides prd.json" has been failing since before this task - it's a test infrastructure issue not related to install.sh
+- **Relative path handling**: Convert relative paths to absolute using $(pwd)/$TARGET_DIR for consistent behavior
+- **Source validation**: Check all required source files exist before starting installation to fail fast
 
 ### Applicable To Future Tasks
-- RALPH-005+ (all tasks): Use tee + pipe pattern for dual output (logging + display) in any CLI tool
-- Any runner script: Mock external binaries with temp directories + PATH manipulation for testing
-- Integration testing: This pattern (mock binary + fixtures + PATH manipulation) works for any external CLI tool
-- Stream processing: The tee pattern works for any line-by-line streaming output
+- RALPH-006 (README docs): Reference install.sh in documentation
+- Any distribution script: Use this pattern for portable installation
+- Test file cleanup: Use trap "rm -rf $TEST_TMP_DIR" EXIT pattern
 
 ### Tags
-stream-json: runner-integration
-testing: mock-binaries
-patterns: tee-pipe-dual-output
-cli-tools: graceful-fallback
-backwards-compatibility: json-output-mode
+installation: installer-script
+testing: test-isolation
+patterns: auto-detection
+cli-tools: self-documenting

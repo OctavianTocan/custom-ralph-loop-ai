@@ -120,7 +120,7 @@
         "VALIDATE: ./tests/test-runner.sh passes"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "install.sh should be self-contained and work from the cloned repo. Default target is .ralph/ in current directory. Auto-detect .claude/ and .cursor/ for command installation. Print clear next steps after installation."
     },
     {

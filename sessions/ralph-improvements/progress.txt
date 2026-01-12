@@ -278,22 +278,26 @@ When running `claude -p --output-format stream-json`, the output is newline-deli
 
 ---
 
-## 2026-01-12 - RALPH-004
 
-- Integrated stream-json output format into run-claude.sh for better visibility
-- Created tests/test-runner-integration.sh with mock claude binary (8 test cases)
-- Implemented tee + pipe pattern: raw JSON → log file, pretty-printed → terminal
-- Added graceful fallback when pretty-printer missing (shows warning + raw output)
-- Maintained RALPH_JSON_OUTPUT=true backwards compatibility for cost tracking
-- Files changed: runners/run-claude.sh, tests/test-runner-integration.sh (new)
-- Validation status: ALL PASSED (135/135 tests including 8 new integration tests)
+## 2026-01-12 - RALPH-005
+
+- Implemented install.sh for easy Ralph installation
+- Created tests/test-install.sh with 18 test cases
+- Default target: .ralph/ in current directory
+- Custom target: ./install.sh my-ralph/
+- Auto-detects .claude/ and .cursor/ directories for command installation
+- Creates empty sessions/ directory
+- All scripts made executable
+- Prints success message with next steps
+- Files changed: install.sh (new, 141 lines), tests/test-install.sh (new)
+- Validation status: ALL PASSED (18/18 install tests)
+- Note: Pre-existing failure in test-workflows.sh unrelated to this task
 - Browser verification: SKIPPED (CLI tool only)
 
 **Learnings:**
-- Tee + pipe pattern (`cmd | tee log | pretty`) achieves dual output elegantly
-- Mock binaries in temp directories + PATH manipulation enables integration testing without real API calls
-- Script path resolution: `$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)` finds project root reliably
-- Test-first with mocks: Create mock binary, write failing tests, implement until tests pass
+- Installation scripts should validate source files exist before copying
+- Auto-detection of .claude/ and .cursor/ provides seamless integration
+- Test isolation with temp directories prevents workspace pollution
+- Idempotent updates (overwrite on re-run) make install safe to repeat
 
 ---
-

@@ -36,3 +36,40 @@ Status: COMPLETED
 cli-flags: help-version
 testing: test-first-success
 patterns: flag-pre-scan
+## RALPH-002 - Add init subcommand to create new sessions
+Date: 2026-01-12 17:30
+Status: COMPLETED
+
+### What Was Done
+- Created tests/test-init-command.sh with 16 comprehensive test cases
+- Implemented init subcommand in ralph.sh before session resolution logic
+- Init creates session directory with prd.json, progress.txt, and learnings.md
+- Template prd.json includes: branchName (ralph/<name>), agent (claude), model (sonnet), validationCommands (empty object), placeholder userStory
+- Added error handling for duplicate session names
+- Added success message with next steps
+
+### Files Changed
+- tests/test-init-command.sh: New test file with 16 test cases
+- ralph.sh: Added init subcommand handling with session creation logic (lines 62-146)
+- sessions/ralph-improvements/prd.json: Updated RALPH-002 passes to true
+- sessions/ralph-improvements/learnings.md: This entry
+- sessions/ralph-improvements/progress.txt: Appended task summary
+
+### Learnings
+- **Init before session resolution**: Init command must be handled BEFORE session resolution logic to avoid "session not found" errors
+- **Template file generation**: Using heredocs with placeholder replacement (sed -i) provides clean template generation
+- **Test-first validation**: All 16 tests written first, verified failures, then implemented until all passed
+- **Session structure**: A valid Ralph session requires: prd.json (config), progress.txt (history + patterns), learnings.md (accumulated knowledge)
+- **Idempotency check**: Checking for existing session directory prevents accidental overwrites
+- **Success messaging**: Clear next steps in success message guides users on what to do after session creation
+
+### Applicable To Future Tasks
+- RALPH-003+ (all tasks): Use init command to create test sessions instead of manual creation
+- Any command that creates files: Use heredocs for clean template generation
+- Test-first approach validated again: 16 tests, all passing first try after implementation
+
+### Tags
+cli-subcommands: init
+session-management: creation
+testing: test-first-success
+patterns: heredoc-templates

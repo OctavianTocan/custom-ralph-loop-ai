@@ -59,6 +59,92 @@ show_version() {
   echo "ralph-ai-coding-loop v$VERSION"
 }
 
+# ============================================================================
+# Handle init subcommand FIRST (before session resolution)
+# ============================================================================
+if [[ "$1" == "init" ]]; then
+  SESSION_NAME="$2"
+
+  if [[ -z "$SESSION_NAME" ]]; then
+    echo "Error: Session name required"
+    echo "Usage: ralph.sh init <session-name>"
+    exit 1
+  fi
+
+  SESSION_PATH="$SCRIPT_DIR/sessions/$SESSION_NAME"
+
+  # Check if session already exists
+  if [[ -d "$SESSION_PATH" ]]; then
+    echo "Error: Session '$SESSION_NAME' already exists at $SESSION_PATH"
+    exit 1
+  fi
+
+  # Create session directory
+  mkdir -p "$SESSION_PATH"
+
+  # Generate template prd.json
+  cat > "$SESSION_PATH/prd.json" <<'EOF'
+{
+  "branchName": "ralph/SESSION_NAME",
+  "agent": "claude",
+  "model": "sonnet",
+  "validationCommands": {},
+  "userStories": [
+    {
+      "id": "STORY-001",
+      "title": "First task to implement",
+      "acceptanceCriteria": [
+        "Describe what success looks like",
+        "Add measurable criteria"
+      ],
+      "priority": 1,
+      "passes": false
+    }
+  ]
+}
+EOF
+
+  # Replace placeholder with actual session name
+  sed -i "s/SESSION_NAME/$SESSION_NAME/g" "$SESSION_PATH/prd.json"
+
+  # Create progress.txt
+  cat > "$SESSION_PATH/progress.txt" <<EOF
+# Ralph Progress Log
+
+Session: $SESSION_NAME
+Location: sessions/$SESSION_NAME/
+Branch: ralph/$SESSION_NAME
+
+---
+
+## Codebase Patterns
+
+(Add discovered patterns here)
+
+---
+EOF
+
+  # Create learnings.md
+  cat > "$SESSION_PATH/learnings.md" <<EOF
+# Learnings: $SESSION_NAME
+
+Session: $SESSION_NAME
+Branch: ralph/$SESSION_NAME
+
+---
+EOF
+
+  echo ""
+  echo "✓ Created session: $SESSION_NAME"
+  echo ""
+  echo "Next steps:"
+  echo "  1. Edit sessions/$SESSION_NAME/prd.json to define your tasks"
+  echo "  2. Run: ./ralph.sh --session $SESSION_NAME"
+  echo ""
+
+  exit 0
+fi
+
 # Check for --help or --version BEFORE parsing other arguments
 for arg in "$@"; do
   case "$arg" in

@@ -233,3 +233,24 @@ When running `claude -p --output-format stream-json`, the output is newline-deli
 - Test-first development caught exit code and output format requirements early
 
 ---
+
+## 2026-01-12 - RALPH-002
+
+- Implemented init subcommand to create new sessions
+- Created tests/test-init-command.sh with 16 test cases
+- Init command processes BEFORE session resolution logic
+- Creates session directory structure: prd.json, progress.txt, learnings.md
+- Template prd.json includes all required fields with sensible defaults
+- Error handling for duplicate session names
+- Success message guides users on next steps
+- Files changed: ralph.sh (lines 62-146), tests/test-init-command.sh (new)
+- Validation status: ALL PASSED (115/115 tests)
+- Browser verification: SKIPPED (CLI tool only)
+
+**Learnings:**
+- Init command must be handled before session resolution to avoid errors
+- Heredocs with sed replacement provide clean template generation
+- Test-first approach: wrote 16 tests, verified failures, implemented until all passed
+- Session structure requires: prd.json, progress.txt, learnings.md
+
+---

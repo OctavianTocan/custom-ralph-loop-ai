@@ -48,7 +48,7 @@
         "VALIDATE: ./tests/test-runner.sh passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Template prd.json should have: branchName (ralph/<name>), agent (claude), model (sonnet), validationCommands (empty object), userStories (one placeholder). The init command should be processed BEFORE session resolution logic."
     },
     {

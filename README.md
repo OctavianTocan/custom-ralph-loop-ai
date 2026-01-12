@@ -86,6 +86,105 @@ See [docs/USAGE.md](docs/USAGE.md) for detailed workflow.
 
 See [docs/INSTALLATION.md](docs/INSTALLATION.md) for detailed installation guide.
 
+## Installation for AI Agents
+
+This section is designed for AI agents (Claude, Cursor, etc.) helping users install Ralph. All commands are copy-paste ready.
+
+### Quick Install (Recommended)
+
+```bash
+# Clone and install in one step
+git clone https://github.com/anthropics/ralph.git /tmp/ralph-install && \
+  /tmp/ralph-install/install.sh && \
+  rm -rf /tmp/ralph-install
+```
+
+### Manual Install
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/anthropics/ralph.git
+
+# 2. Run the installer
+cd ralph
+./install.sh
+
+# 3. Verify installation
+.ralph/ralph.sh --version
+```
+
+### Custom Installation Directory
+
+```bash
+# Install to a custom location
+./install.sh my-ralph/
+
+# Or install to an absolute path
+./install.sh ~/tools/ralph/
+```
+
+### Verification Commands
+
+After installation, verify everything works:
+
+```bash
+# Check version
+.ralph/ralph.sh --version
+# Expected: ralph-ai-coding-loop v1.x.x
+
+# Check help
+.ralph/ralph.sh --help
+# Expected: Usage information with options
+
+# Create a test session
+.ralph/ralph.sh init test-session
+# Expected: Creates .ralph/sessions/test-session/ with prd.json
+
+# Clean up test session
+rm -rf .ralph/sessions/test-session
+```
+
+### First Session Creation
+
+```bash
+# Create your first session
+.ralph/ralph.sh init my-feature
+
+# Edit the PRD to define your tasks
+# File: .ralph/sessions/my-feature/prd.json
+
+# Start Ralph (10 iterations)
+.ralph/ralph.sh 10 --session my-feature
+```
+
+### Troubleshooting Installation
+
+**Permission denied:**
+```bash
+chmod +x .ralph/*.sh .ralph/runners/*.sh
+```
+
+**jq not found (optional but recommended):**
+```bash
+# macOS
+brew install jq
+
+# Ubuntu/Debian
+sudo apt-get install jq
+
+# Without jq, Ralph falls back to grep/sed parsing
+```
+
+**Claude CLI not found:**
+```bash
+# Install Claude Code CLI
+# See: https://claude.ai/code
+```
+
+### Alternative: Claude Chrome MCP
+
+If you're using Claude in the browser, you can use the Chrome MCP extension instead of the CLI. See the [Claude Chrome MCP documentation](https://github.com/anthropics/claude-chrome-mcp) for setup instructions.
+
 ## Usage
 
 ### Create a Session

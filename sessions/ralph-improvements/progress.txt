@@ -301,3 +301,26 @@ When running `claude -p --output-format stream-json`, the output is newline-deli
 - Idempotent updates (overwrite on re-run) make install safe to repeat
 
 ---
+
+## 2026-01-12 - RALPH-006
+
+- Added "Installation for AI Agents" section to README.md
+- Quick install one-liner: git clone + install.sh + cleanup
+- Manual install steps with verification commands
+- Custom installation directory examples
+- Verification commands with expected outputs
+- First session creation example using init command
+- Troubleshooting: permissions, jq, Claude CLI
+- Note about Claude Chrome MCP as alternative
+- All commands verified to work when copy-pasted
+- Files changed: README.md (~100 lines added)
+- Validation status: ALL PASSED (154/154 tests)
+- Browser verification: SKIPPED (documentation only)
+
+**Learnings:**
+- AI agents need explicit commands with expected outputs
+- Verification steps help AI agents confirm success
+- Troubleshooting sections prevent common installation failures
+- Testing actual commands ensures documentation accuracy
+
+---

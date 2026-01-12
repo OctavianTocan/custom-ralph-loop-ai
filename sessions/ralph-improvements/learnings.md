@@ -165,3 +165,40 @@ installation: installer-script
 testing: test-isolation
 patterns: auto-detection
 cli-tools: self-documenting
+## RALPH-006 - Add AI agent installation documentation to README
+Date: 2026-01-12 18:30
+Status: COMPLETED
+
+### What Was Done
+- Added "## Installation for AI Agents" section to README.md
+- Quick install one-liner with git clone + install.sh
+- Manual install steps with verification
+- Custom installation directory examples
+- Verification commands with expected outputs
+- First session creation example
+- Troubleshooting section (permissions, jq, Claude CLI)
+- Note about Claude Chrome MCP as alternative
+- Verified all commands work when copy-pasted
+
+### Files Changed
+- README.md: Added "Installation for AI Agents" section (~100 lines)
+- sessions/ralph-improvements/prd.json: Updated RALPH-006 passes to true
+- sessions/ralph-improvements/learnings.md: This entry
+- sessions/ralph-improvements/progress.txt: Appended task summary
+
+### Learnings
+- **Documentation for AI agents**: AI agents need explicit, copy-paste ready commands with expected outputs
+- **Verification steps**: Including "Expected: ..." comments helps AI agents verify success
+- **Troubleshooting patterns**: Group common issues with their solutions
+- **Command testing**: Always run the actual commands to verify they work before documenting
+- **Graceful alternatives**: Note fallbacks (Chrome MCP) for users without CLI access
+
+### Applicable To Future Tasks
+- Any documentation task: Include expected outputs for verification
+- AI-facing docs: Use explicit, copy-paste ready command blocks
+- Installation guides: Include troubleshooting for common issues
+
+### Tags
+documentation: ai-agent-guide
+testing: command-verification
+patterns: copy-paste-ready

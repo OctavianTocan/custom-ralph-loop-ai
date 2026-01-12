@@ -138,7 +138,7 @@
         "VALIDATE: All commands in README actually work when copy-pasted"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "This is documentation-only task. Target audience is AI agents (Claude, Cursor, etc.) helping users install Ralph. Commands must be copy-paste ready. Include both git clone method and curl one-liner if install-remote.sh exists."
     },
     {

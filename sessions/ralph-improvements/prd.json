@@ -1,0 +1,170 @@
+{
+  "branchName": "ralph-improvements",
+  "agent": "claude",
+  "model": "sonnet",
+  "validationCommands": {
+    "test": "./tests/test-runner.sh",
+    "shellcheck": "shellcheck ralph.sh runners/*.sh 2>/dev/null || echo 'shellcheck not installed, skipping'"
+  },
+  "globalInstructions": {
+    "testFirst": "For each task, write the test FIRST, verify it fails, then implement the feature until tests pass.",
+    "fixtureUsage": "Use tests/fixtures/ for mock data. Never run real Claude sessions during testing.",
+    "validationLoop": "After implementation: run ./tests/test-runner.sh. If any test fails, fix and re-run until all pass."
+  },
+  "userStories": [
+    {
+      "id": "RALPH-001",
+      "title": "Add --help and --version flags to ralph.sh",
+      "acceptanceCriteria": [
+        "TEST FIRST: Create tests/test-ralph-flags.sh with tests for --help, -h, --version, -v",
+        "TEST: ./ralph.sh --version outputs 'ralph-ai-coding-loop v1.x.x' format",
+        "TEST: ./ralph.sh -v outputs same as --version",
+        "TEST: ./ralph.sh --help outputs Usage:, Options:, Examples: sections",
+        "TEST: ./ralph.sh -h outputs same as --help",
+        "TEST: --help mentions 'sessions' and lists available sessions",
+        "IMPLEMENT: Add case statement at top of ralph.sh before session parsing",
+        "IMPLEMENT: --version exits 0, --help exits 0",
+        "VALIDATE: ./tests/test-runner.sh passes",
+        "VALIDATE: shellcheck ralph.sh passes (or warns only)"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "Add case statement BEFORE the argument parsing loop. Exit immediately after handling these flags. Help should show: Usage, Options (--session, --force, --workflow, --help, --version), Examples, and list available sessions from sessions/ directory."
+    },
+    {
+      "id": "RALPH-002",
+      "title": "Add init subcommand to create new sessions",
+      "acceptanceCriteria": [
+        "TEST FIRST: Create tests/test-init-command.sh",
+        "TEST: ./ralph.sh init my-feature creates sessions/my-feature/ directory",
+        "TEST: init creates prd.json with valid JSON containing branchName, agent, userStories",
+        "TEST: init creates progress.txt with header",
+        "TEST: init creates learnings.md with header",
+        "TEST: prd.json branchName defaults to 'ralph/my-feature'",
+        "TEST: Running init twice on same name shows error (session exists)",
+        "IMPLEMENT: Add 'init' case to ralph.sh argument handling",
+        "IMPLEMENT: Generate template prd.json with placeholder userStory",
+        "IMPLEMENT: Print success message with next steps",
+        "VALIDATE: ./tests/test-runner.sh passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Template prd.json should have: branchName (ralph/<name>), agent (claude), model (sonnet), validationCommands (empty object), userStories (one placeholder). The init command should be processed BEFORE session resolution logic."
+    },
+    {
+      "id": "RALPH-003",
+      "title": "Create pretty-printer for stream-json output",
+      "acceptanceCriteria": [
+        "TEST FIRST: Create tests/fixtures/stream-json-samples/ with mock JSONL files",
+        "TEST FIRST: Create tests/fixtures/expected-output/ with expected pretty output",
+        "TEST FIRST: Create tests/test-pretty-printer.sh",
+        "FIXTURE: thinking.jsonl - sample thinking blocks",
+        "FIXTURE: tool-calls.jsonl - sample tool_use and result events",
+        "FIXTURE: text-output.jsonl - sample text responses",
+        "FIXTURE: mixed-session.jsonl - realistic mix of all event types",
+        "FIXTURE: error-cases.jsonl - malformed JSON, missing fields",
+        "TEST: Pretty printer shows thinking with dimmed color and truncation",
+        "TEST: Pretty printer shows tool_use with name highlighted",
+        "TEST: Pretty printer shows text output in green",
+        "TEST: Pretty printer handles malformed JSON gracefully (warns, continues)",
+        "TEST: --no-color flag disables ANSI codes",
+        "IMPLEMENT: Create ralph-pretty-print.sh that reads JSONL from stdin",
+        "IMPLEMENT: Parse each line with jq, format based on type",
+        "IMPLEMENT: Support --no-color and --log-file flags",
+        "VALIDATE: ./tests/test-runner.sh passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "The pretty-printer reads newline-delimited JSON from stdin. Event types: assistant.message.content[0].type can be 'thinking', 'tool_use', or 'text'. Also handle 'result' type events. Use jq for parsing. Colors: thinking=dim, tool_use=cyan, text=green, result=yellow. Truncate long content (>200 chars for thinking, >500 for results)."
+    },
+    {
+      "id": "RALPH-004",
+      "title": "Update run-claude.sh to use stream-json with pretty-printer",
+      "acceptanceCriteria": [
+        "TEST FIRST: Create tests/test-runner-integration.sh with mock claude binary",
+        "TEST: Mock claude outputs fixture JSONL, runner pipes to pretty-printer",
+        "TEST: Output shows thinking emoji for thinking blocks",
+        "TEST: Output shows tool emoji for tool calls",
+        "TEST: Output shows text for assistant responses",
+        "TEST: Log file contains raw JSON (not pretty-printed)",
+        "TEST: Existing RALPH_JSON_OUTPUT=true behavior still works",
+        "IMPLEMENT: Change -p flag to -p --output-format stream-json",
+        "IMPLEMENT: Pipe claude output through ralph-pretty-print.sh",
+        "IMPLEMENT: Tee raw JSON to log file before pretty-printing",
+        "IMPLEMENT: Handle case where pretty-printer is missing (fallback to raw)",
+        "VALIDATE: ./tests/test-runner.sh passes",
+        "VALIDATE: Manual test with: echo '{...}' | ./ralph-pretty-print.sh"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "CRITICAL: This is the fix for 'no visibility into agent thinking'. The runner must: (1) call claude with --output-format stream-json, (2) tee the raw JSON to the log file, (3) pipe through ralph-pretty-print.sh for terminal display. Fallback gracefully if pretty-printer missing."
+    },
+    {
+      "id": "RALPH-005",
+      "title": "Create install.sh for easy installation",
+      "acceptanceCriteria": [
+        "TEST FIRST: Create tests/test-install.sh",
+        "TEST: ./install.sh creates .ralph/ directory with all scripts",
+        "TEST: ./install.sh custom-dir creates custom-dir/ with all scripts",
+        "TEST: Scripts in target directory are executable",
+        "TEST: If .claude/ exists, commands copied to .claude/commands/",
+        "TEST: If .cursor/ exists, commands copied to .cursor/commands/",
+        "TEST: Running install.sh twice updates existing installation",
+        "TEST: sessions/ directory created (empty)",
+        "IMPLEMENT: Create install.sh at repo root",
+        "IMPLEMENT: Copy ralph.sh, status.sh, stop.sh, watch.sh, prompt.md",
+        "IMPLEMENT: Copy runners/ directory",
+        "IMPLEMENT: Copy ralph-pretty-print.sh",
+        "IMPLEMENT: chmod +x on all .sh files",
+        "IMPLEMENT: Print usage instructions after install",
+        "VALIDATE: ./tests/test-runner.sh passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "install.sh should be self-contained and work from the cloned repo. Default target is .ralph/ in current directory. Auto-detect .claude/ and .cursor/ for command installation. Print clear next steps after installation."
+    },
+    {
+      "id": "RALPH-006",
+      "title": "Add AI agent installation documentation to README",
+      "acceptanceCriteria": [
+        "UPDATE: README.md has '## Installation for AI Agents' section",
+        "CONTENT: Quick install one-liner for AI agents to copy-paste",
+        "CONTENT: Manual install steps if automated fails",
+        "CONTENT: Verification commands (./ralph.sh --version)",
+        "CONTENT: First session creation example",
+        "CONTENT: Common troubleshooting (permissions, missing jq)",
+        "CONTENT: Note about Claude Chrome MCP as alternative",
+        "VALIDATE: README renders correctly in GitHub preview",
+        "VALIDATE: All commands in README actually work when copy-pasted"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "This is documentation-only task. Target audience is AI agents (Claude, Cursor, etc.) helping users install Ralph. Commands must be copy-paste ready. Include both git clone method and curl one-liner if install-remote.sh exists."
+    },
+    {
+      "id": "RALPH-007",
+      "title": "Add smart iteration suggestion based on task complexity",
+      "acceptanceCriteria": [
+        "TEST FIRST: Create tests/test-iteration-suggestion.sh",
+        "TEST: prd.json with suggestedIterations field is read and displayed",
+        "TEST: prd.json without suggestedIterations calculates from task count",
+        "TEST: Each userStory can have optional 'complexity' field (small/medium/large)",
+        "TEST: Complexity weights: small=1, medium=2, large=3 iterations",
+        "TEST: Default complexity is 'medium' if not specified",
+        "TEST: ./ralph.sh --session <name> shows 'Suggested iterations: N' before prompting",
+        "TEST: ./ralph.sh --session <name> --iterations auto uses suggested count",
+        "IMPLEMENT: Add iteration calculation function to ralph.sh",
+        "IMPLEMENT: Parse suggestedIterations from prd.json if present",
+        "IMPLEMENT: Calculate from sum of complexity weights if not present",
+        "IMPLEMENT: Display suggestion with breakdown (e.g., '3 small + 2 large = 9 iterations')",
+        "IMPLEMENT: Add --iterations auto flag to use suggested count without prompting",
+        "IMPLEMENT: Update init command to include complexity field in template",
+        "VALIDATE: ./tests/test-runner.sh passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "complexity": "medium",
+      "notes": "This allows PRD authors to either specify exact iterations or let Ralph calculate based on task complexity. The formula: sum of (complexity_weight * 1) for each task. Small=1, Medium=2, Large=3. Example: 2 small + 3 medium + 1 large = 2 + 6 + 3 = 11 suggested iterations. Display shows: 'Suggested: 11 iterations (2 small, 3 medium, 1 large tasks)'. The --iterations auto flag makes it fully automated."
+    }
+  ]
+}

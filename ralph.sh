@@ -11,6 +11,67 @@ MAX_ITERATIONS=10
 SESSION_DIR=""
 FORCE=false
 WORKFLOW=""
+VERSION="1.0.0"
+
+# ============================================================================
+# Handle --help and --version flags FIRST (before session resolution)
+# ============================================================================
+show_help() {
+  cat <<EOF
+Ralph Autonomous Coding Loop
+
+Usage:
+  ralph.sh [iterations] --session <name> [options]
+  ralph.sh <session-name> [iterations] [options]
+
+Options:
+  --session <name>    Session name (from sessions/ directory)
+  --force, -f         Force start even if session is running
+  --workflow <name>   Use workflow from .claude/workflows/
+  --help, -h          Show this help message
+  --version, -v       Show version information
+
+Examples:
+  ralph.sh 25 --session my-feature
+  ralph.sh my-feature 25
+  ralph.sh --session my-feature --force
+
+Available sessions:
+EOF
+  if [[ -d "$SCRIPT_DIR/sessions" ]]; then
+    ls -1 "$SCRIPT_DIR/sessions/" 2>/dev/null | sed 's/^/  /' || echo "  (none)"
+  else
+    echo "  (none)"
+  fi
+  echo ""
+}
+
+show_version() {
+  # Try to get version from git tags
+  if command -v git &> /dev/null && [[ -d "$SCRIPT_DIR/.git" ]]; then
+    GIT_VERSION=$(git -C "$SCRIPT_DIR" describe --tags 2>/dev/null || git -C "$SCRIPT_DIR" log -1 --format="%h" 2>/dev/null || echo "")
+    if [[ -n "$GIT_VERSION" ]]; then
+      echo "ralph-ai-coding-loop $GIT_VERSION"
+      exit 0
+    fi
+  fi
+  # Fallback to hardcoded version
+  echo "ralph-ai-coding-loop v$VERSION"
+}
+
+# Check for --help or --version BEFORE parsing other arguments
+for arg in "$@"; do
+  case "$arg" in
+    --help|-h)
+      show_help
+      exit 0
+      ;;
+    --version|-v)
+      show_version
+      exit 0
+      ;;
+  esac
+done
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do

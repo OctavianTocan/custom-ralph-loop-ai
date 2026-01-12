@@ -1,0 +1,235 @@
+# Ralph Improvements Progress
+
+## Session: ralph-improvements
+## Location: sessions/ralph-improvements/
+## Branch: ralph-improvements
+
+---
+
+## CRITICAL: Test-First Development (MUST FOLLOW)
+
+Every task MUST follow this loop:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                  TEST-FIRST DEVELOPMENT LOOP                │
+├─────────────────────────────────────────────────────────────┤
+│  1. WRITE TEST FIRST                                        │
+│     - Create test file in tests/                            │
+│     - Write test cases that define expected behavior        │
+│     - Run test: should FAIL (feature doesn't exist)         │
+│                                                             │
+│  2. CREATE FIXTURES (if needed)                             │
+│     - Add mock data to tests/fixtures/                      │
+│     - NEVER use real Claude sessions for testing            │
+│                                                             │
+│  3. IMPLEMENT FEATURE                                       │
+│     - Write minimal code to make tests pass                 │
+│     - Keep it simple - no over-engineering                  │
+│                                                             │
+│  4. VALIDATE                                                │
+│     - Run: ./tests/test-runner.sh                           │
+│     - ALL tests must pass                                   │
+│     - Run: shellcheck ralph.sh runners/*.sh                 │
+│                                                             │
+│  5. REPEAT                                                  │
+│     - If tests fail: fix and goto 4                         │
+│     - If tests pass: mark task complete                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Existing Test Infrastructure
+
+The repo already has test infrastructure:
+
+```
+tests/
+├── test-runner.sh           # Master test runner (executable)
+├── test-helpers.sh          # Shared test utilities
+├── test-run-claude.sh       # Tests for run-claude.sh
+├── test-install-cursor-hooks.sh
+├── test-log-command.sh
+├── test-on-stop.sh
+├── test-track-edit.sh
+├── test-validate-command.sh
+└── test-workflows.sh
+```
+
+### Test Runner Usage
+```bash
+# Run all tests
+./tests/test-runner.sh
+
+# Run specific test file
+./tests/test-run-claude.sh
+```
+
+### Test Helper Functions (from test-helpers.sh)
+- `setup_test_env()` - Create temp directory for test
+- `cleanup_test_env()` - Remove temp directory
+- `assert_equals()` - Compare values
+- `assert_file_exists()` - Check file exists
+- `assert_contains()` - Check string contains substring
+
+---
+
+## Fixture Strategy
+
+### For RALPH-003 (Pretty Printer)
+
+Create these fixture files:
+
+```
+tests/fixtures/
+├── stream-json-samples/
+│   ├── thinking.jsonl      # Thinking blocks
+│   ├── tool-calls.jsonl    # tool_use + result events
+│   ├── text-output.jsonl   # Text responses
+│   ├── mixed-session.jsonl # Realistic session
+│   └── error-cases.jsonl   # Malformed JSON
+└── expected-output/
+    ├── thinking-pretty.txt
+    ├── tool-calls-pretty.txt
+    └── mixed-pretty.txt
+```
+
+### Sample stream-json Event Types
+
+```jsonl
+# Thinking
+{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"Let me analyze..."}]}}
+
+# Tool use
+{"type":"assistant","message":{"content":[{"type":"tool_use","id":"toolu_01","name":"Read","input":{"file_path":"/foo"}}]}}
+
+# Tool result
+{"type":"result","subtype":"success","result":"File contents here..."}
+
+# Text output
+{"type":"assistant","message":{"content":[{"type":"text","text":"Based on my analysis..."}]}}
+```
+
+---
+
+## Key Files to Modify
+
+| Task | Files |
+|------|-------|
+| RALPH-001 | ralph.sh (add case statement at top) |
+| RALPH-002 | ralph.sh (add init handling) |
+| RALPH-003 | NEW: ralph-pretty-print.sh |
+| RALPH-004 | runners/run-claude.sh |
+| RALPH-005 | NEW: install.sh |
+| RALPH-006 | README.md |
+
+---
+
+## Validation Commands
+
+```bash
+# Run all tests
+./tests/test-runner.sh
+
+# Check shell script syntax
+shellcheck ralph.sh runners/*.sh ralph-pretty-print.sh
+
+# Manual smoke tests
+./ralph.sh --version
+./ralph.sh --help
+./ralph.sh init test-session
+echo '{"type":"assistant","message":{"content":[{"type":"text","text":"Hello"}]}}' | ./ralph-pretty-print.sh
+```
+
+---
+
+## Claude stream-json Output Reference
+
+When running `claude -p --output-format stream-json`, the output is newline-delimited JSON:
+
+### Event Types
+
+| Type | Structure | Display |
+|------|-----------|---------|
+| thinking | `{"type":"assistant","message":{"content":[{"type":"thinking","thinking":"..."}]}}` | Dim, truncated |
+| tool_use | `{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Read","input":{...}}]}}` | Cyan, show name |
+| result | `{"type":"result","subtype":"success","result":"..."}` | Yellow, truncated |
+| text | `{"type":"assistant","message":{"content":[{"type":"text","text":"..."}]}}` | Green, full |
+
+### Pretty Printer Output Format
+
+```
+🤔 Let me analyze the requirements... (truncated to 200 chars)
+🔧 Read: /path/to/file.ts
+✅ File contents: export function... (truncated to 500 chars)
+💬 Based on my analysis, I recommend...
+🔧 Edit: /path/to/file.ts
+✅ File edited successfully
+💬 Done! The feature is now implemented.
+```
+
+---
+
+## Task Status
+
+- [ ] RALPH-001: --help/--version flags (priority 1)
+  - Tests written: No
+  - Implementation: No
+  - Validation: No
+
+- [ ] RALPH-002: init subcommand (priority 2)
+  - Tests written: No
+  - Implementation: No
+  - Validation: No
+
+- [ ] RALPH-003: Pretty printer (priority 3)
+  - Fixtures created: No
+  - Tests written: No
+  - Implementation: No
+  - Validation: No
+
+- [ ] RALPH-004: Stream-json integration (priority 4)
+  - Tests written: No
+  - Implementation: No
+  - Validation: No
+
+- [ ] RALPH-005: install.sh (priority 5)
+  - Tests written: No
+  - Implementation: No
+  - Validation: No
+
+- [ ] RALPH-006: AI docs (priority 6)
+  - README updated: No
+
+- [ ] RALPH-007: Smart iteration suggestion (priority 7)
+  - Tests written: No
+  - Implementation: No
+  - Validation: No
+
+---
+
+## Notes
+
+- jq is required for pretty printer - check availability
+- shellcheck is optional but recommended
+- Mock claude binary for integration tests (don't run real sessions)
+- All tests should run in < 30 seconds total
+
+## 2026-01-12 - RALPH-001
+
+- Implemented --help and --version flags for ralph.sh
+- Created tests/test-ralph-flags.sh with 13 comprehensive test cases
+- Added show_help() function with Usage, Options, Examples, and available sessions
+- Added show_version() function with git describe for dynamic versioning
+- Used flag pre-scan pattern (before main argument parsing) to handle immediate exit
+- Files changed: ralph.sh, tests/test-ralph-flags.sh
+- Validation status: ALL PASSED (99/99 tests)
+- Browser verification: SKIPPED (CLI tool only)
+
+**Learnings:**
+- Flag handling must occur BEFORE session resolution to exit immediately
+- Pre-scan loop pattern allows flags to work regardless of argument position
+- Test-first development caught exit code and output format requirements early
+
+---

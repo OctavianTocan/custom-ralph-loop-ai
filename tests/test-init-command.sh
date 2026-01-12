@@ -105,7 +105,7 @@ test_pass
 test_start "init shows success message"
 rm -rf sessions/another-feature
 OUTPUT=$(./ralph.sh init another-feature 2>&1)
-assert_contains "$OUTPUT" "Created"
+assert_contains "$OUTPUT" "Session created"
 assert_contains "$OUTPUT" "another-feature"
 test_pass
 

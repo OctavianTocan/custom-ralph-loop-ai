@@ -139,7 +139,7 @@ Branch: ralph/$SESSION_NAME
 EOF
 
   echo ""
-  echo "✓ Created session: $SESSION_NAME"
+  echo "Session created: $SESSION_NAME"
   echo ""
   echo "Next steps:"
   echo "  1. Edit sessions/$SESSION_NAME/prd.json to define your tasks"
@@ -491,9 +491,9 @@ N='\033[0m'
 BOLD='\033[1m'
 
 echo ""
-echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
-echo -e "${C}║${N}                    ${BOLD}${G}RALPH${N} ${D}AUTONOMOUS CODING LOOP${N}                    ${C}║${N}"
-echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
+echo -e "${C}========================================================================${N}"
+echo -e "${BOLD}${G}RALPH${N} ${D}AUTONOMOUS CODING LOOP${N}"
+echo -e "${C}========================================================================${N}"
 echo ""
 echo -e "  ${BOLD}Session:${N}    ${C}$(basename "$SESSION_DIR")${N}"
 echo -e "  ${BOLD}Agent:${N}      ${G}$AGENT${N}"
@@ -513,7 +513,7 @@ echo -e "  ${BOLD}Status:${N}     ${D}./status.sh${N}"
 echo -e "  ${BOLD}Watch:${N}      ${D}./watch.sh${N}"
 echo -e "  ${BOLD}Stop:${N}       ${D}kill $$${N}"
 echo ""
-echo -e "${C}════════════════════════════════════════════════════════════════════════${N}"
+echo -e "${C}========================================================================${N}"
 echo ""
 
 # Initialize log
@@ -536,9 +536,9 @@ BOLD='\033[1m'
 
 for i in $(seq 1 $MAX_ITERATIONS); do
   echo ""
-  echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-  echo -e "${C}║${N}  ${BOLD}Iteration $i${N} of ${BOLD}$MAX_ITERATIONS${N}  ${N}$(date)${N}  ${C}║${N}" | tee -a "$LOG_FILE"
-  echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+  echo -e "${C}========================================================================${N}" | tee -a "$LOG_FILE"
+  echo -e "${C}Iteration $i of $MAX_ITERATIONS${N}  $(date)" | tee -a "$LOG_FILE"
+  echo -e "${C}========================================================================${N}" | tee -a "$LOG_FILE"
   echo "" | tee -a "$LOG_FILE"
 
   PROMPT="# Session Context
@@ -575,10 +575,10 @@ $WORKFLOW_PROMPT"
   if tail -100 "$LOG_FILE" | grep -q "<promise>COMPLETE</promise>"; then
     echo "" | tee -a "$LOG_FILE"
     G='\033[0;32m'
-    echo -e "${G}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-    echo -e "${G}║${N}                    ${BOLD}${G}✓ RALPH COMPLETE${N}                    ${G}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${G}║${N}              ${N}Agent signaled completion: $(date)${N}              ${G}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${G}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
+    echo -e "Agent signaled completion: $(date)" | tee -a "$LOG_FILE"
+    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
     echo ""
     exit 0
   fi
@@ -586,10 +586,10 @@ $WORKFLOW_PROMPT"
   if tail -100 "$LOG_FILE" | grep -q "<promise>BLOCKED"; then
     echo "" | tee -a "$LOG_FILE"
     R='\033[0;31m'
-    echo -e "${R}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-    echo -e "${R}║${N}                    ${BOLD}${R}✗ RALPH BLOCKED${N}                    ${R}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${R}║${N}              ${N}Check log file: $LOG_FILE${N}              ${R}║${N}" | tee -a "$LOG_FILE"
-    echo -e "${R}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+    echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo -e "${R}RALPH BLOCKED${N}" | tee -a "$LOG_FILE"
+    echo -e "Check log file: $LOG_FILE" | tee -a "$LOG_FILE"
+    echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
     echo ""
     exit 1
   fi
@@ -602,11 +602,11 @@ $WORKFLOW_PROMPT"
     if [[ "$TOTAL_STORIES" -gt 0 && "$TOTAL_STORIES" == "$PASSED_STORIES" ]]; then
       echo "" | tee -a "$LOG_FILE"
       G='\033[0;32m'
-      echo -e "${G}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}║${N}                    ${BOLD}${G}✓ RALPH COMPLETE${N}                    ${G}║${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}║${N}              ${N}All $PASSED_STORIES/$TOTAL_STORIES stories passed${N}              ${G}║${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}║${N}                        ${N}$(date)${N}                        ${G}║${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
+      echo -e "All $PASSED_STORIES/$TOTAL_STORIES stories passed" | tee -a "$LOG_FILE"
+      echo -e "$(date)" | tee -a "$LOG_FILE"
+      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
       echo ""
       exit 0
     else
@@ -620,9 +620,9 @@ done
 
 echo "" | tee -a "$LOG_FILE"
 Y='\033[1;33m'
-echo -e "${Y}╔════════════════════════════════════════════════════════════════════════╗${N}" | tee -a "$LOG_FILE"
-echo -e "${Y}║${N}                  ${BOLD}MAX ITERATIONS REACHED${N}                  ${Y}║${N}" | tee -a "$LOG_FILE"
-echo -e "${Y}║${N}              ${N}Run again to continue: $(date)${N}              ${Y}║${N}" | tee -a "$LOG_FILE"
-echo -e "${Y}╚════════════════════════════════════════════════════════════════════════╝${N}" | tee -a "$LOG_FILE"
+echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+echo -e "${Y}MAX ITERATIONS REACHED${N}" | tee -a "$LOG_FILE"
+echo -e "Run again to continue: $(date)" | tee -a "$LOG_FILE"
+echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
 echo ""
 exit 1

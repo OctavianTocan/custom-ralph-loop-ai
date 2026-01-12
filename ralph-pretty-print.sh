@@ -1,6 +1,6 @@
 #!/bin/bash
 # ralph-pretty-print.sh
-# Pretty-prints Claude CLI stream-json output with emojis and formatting
+# Pretty-prints Claude CLI stream-json output with formatting
 # Reads newline-delimited JSON from stdin, outputs formatted text to stdout
 
 # Colors (default enabled)
@@ -20,22 +20,21 @@ show_usage() {
   cat << EOF
 Usage: ralph-pretty-print.sh [OPTIONS]
 
-Pretty-prints Claude CLI stream-json output with emojis and formatting.
+Pretty-prints Claude CLI stream-json output with formatting.
 
 OPTIONS:
   --no-color          Disable ANSI color codes
-  --log-file FILE     Write raw JSON to log file (not implemented)
   --help              Show this help message
 
 DESCRIPTION:
   Reads newline-delimited JSON from stdin (stream-json format from claude CLI).
-  Outputs human-readable formatted text with emojis and colors.
+  Outputs human-readable formatted text with colors.
 
 EVENT TYPES:
-  🤔 Thinking        - Agent's internal reasoning (truncated to 200 chars)
-  🔧 Tool Use        - Tool calls (Read, Edit, Bash, etc.)
-  ✅ Tool Result     - Tool execution results (truncated to 500 chars)
-  💬 Text Output     - Agent's text responses (full output)
+  [THINK]   - Agent's internal reasoning (truncated to 200 chars)
+  [TOOL]    - Tool calls (Read, Edit, Bash, etc.)
+  [RESULT]  - Tool execution results (truncated to 500 chars)
+  [OUTPUT]  - Agent's text responses (full output)
 
 EXAMPLES:
   # Pretty-print claude output
@@ -56,10 +55,6 @@ while [[ $# -gt 0 ]]; do
     --no-color)
       ENABLE_COLOR=0
       shift
-      ;;
-    --log-file)
-      LOG_FILE="$2"
-      shift 2
       ;;
     --help|-h)
       show_usage
@@ -125,7 +120,7 @@ while IFS= read -r line; do
           THINKING=$(echo "$line" | jq -r '.message.content[0].thinking // empty')
           if [[ -n "$THINKING" ]]; then
             TRUNCATED=$(truncate_string "$THINKING" $THINKING_LIMIT)
-            echo -e "${DIM}🤔 ${TRUNCATED}${NC}"
+            echo -e "${DIM}[THINK] ${TRUNCATED}${NC}"
           fi
           ;;
 
@@ -140,11 +135,11 @@ while IFS= read -r line; do
             COMMAND=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null || echo "")
 
             if [[ -n "$FILE_PATH" ]]; then
-              echo -e "${CYAN}🔧 ${TOOL_NAME}: ${FILE_PATH}${NC}"
+              echo -e "${CYAN}[TOOL] ${TOOL_NAME}: ${FILE_PATH}${NC}"
             elif [[ -n "$COMMAND" ]]; then
-              echo -e "${CYAN}🔧 ${TOOL_NAME}: ${COMMAND}${NC}"
+              echo -e "${CYAN}[TOOL] ${TOOL_NAME}: ${COMMAND}${NC}"
             else
-              echo -e "${CYAN}🔧 ${TOOL_NAME}${NC}"
+              echo -e "${CYAN}[TOOL] ${TOOL_NAME}${NC}"
             fi
           fi
           ;;
@@ -153,7 +148,7 @@ while IFS= read -r line; do
           # Extract text content
           TEXT=$(echo "$line" | jq -r '.message.content[0].text // empty')
           if [[ -n "$TEXT" ]]; then
-            echo -e "${GREEN}💬 ${TEXT}${NC}"
+            echo -e "${GREEN}[OUTPUT] ${TEXT}${NC}"
           fi
           ;;
 
@@ -167,7 +162,7 @@ while IFS= read -r line; do
       RESULT=$(echo "$line" | jq -r '.result // empty')
       if [[ -n "$RESULT" ]]; then
         TRUNCATED=$(truncate_string "$RESULT" $RESULT_LIMIT)
-        echo -e "${YELLOW}✅ ${TRUNCATED}${NC}"
+        echo -e "${YELLOW}[RESULT] ${TRUNCATED}${NC}"
       fi
     fi
 
@@ -178,26 +173,26 @@ while IFS= read -r line; do
       THINKING=$(echo "$line" | sed -n 's/.*"thinking":"\([^"]*\)".*/\1/p')
       if [[ -n "$THINKING" ]]; then
         TRUNCATED=$(truncate_string "$THINKING" $THINKING_LIMIT)
-        echo -e "${DIM}🤔 ${TRUNCATED}${NC}"
+        echo -e "${DIM}[THINK] ${TRUNCATED}${NC}"
       fi
     # Check for tool_use
     elif echo "$line" | grep -q '"type":"tool_use"'; then
       TOOL_NAME=$(echo "$line" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
       if [[ -n "$TOOL_NAME" ]]; then
-        echo -e "${CYAN}🔧 ${TOOL_NAME}${NC}"
+        echo -e "${CYAN}[TOOL] ${TOOL_NAME}${NC}"
       fi
     # Check for text
     elif echo "$line" | grep -q '"type":"text"'; then
       TEXT=$(echo "$line" | sed -n 's/.*"text":"\([^"]*\)".*/\1/p')
       if [[ -n "$TEXT" ]]; then
-        echo -e "${GREEN}💬 ${TEXT}${NC}"
+        echo -e "${GREEN}[OUTPUT] ${TEXT}${NC}"
       fi
     # Check for result
     elif echo "$line" | grep -q '"type":"result"'; then
       RESULT=$(echo "$line" | sed -n 's/.*"result":"\([^"]*\)".*/\1/p')
       if [[ -n "$RESULT" ]]; then
         TRUNCATED=$(truncate_string "$RESULT" $RESULT_LIMIT)
-        echo -e "${YELLOW}✅ ${TRUNCATED}${NC}"
+        echo -e "${YELLOW}[RESULT] ${TRUNCATED}${NC}"
       fi
     fi
   fi

@@ -17,9 +17,9 @@ DIM='\033[2m'
 NC='\033[0m'
 
 echo ""
-echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${C}║${NC}              ${BOLD}Ralph Feature Demo${NC}                                     ${C}║${NC}"
-echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${NC}"
+echo -e "${C}========================================================================${NC}"
+echo -e "              ${BOLD}Ralph Feature Demo${NC}"
+echo -e "${C}========================================================================${NC}"
 echo ""
 
 # Track results
@@ -30,10 +30,10 @@ check() {
   local name="$1"
   local result="$2"
   if [[ "$result" == "0" ]]; then
-    echo -e "  ${G}✓${NC} $name"
+    echo -e "  ${G}[PASS]${NC} $name"
     ((PASSED++)) || true
   else
-    echo -e "  ${R}✗${NC} $name"
+    echo -e "  ${R}[FAIL]${NC} $name"
     ((FAILED++)) || true
   fi
 }
@@ -120,13 +120,13 @@ PASSED_COUNT=$(echo "$TEST_OUTPUT" | grep "Passed:" | sed 's/.*Passed:[^0-9]*\([
 echo ""
 
 # Summary
-echo -e "${C}════════════════════════════════════════════════════════════════════════${NC}"
+echo -e "${C}========================================================================${NC}"
 echo -e "${BOLD}Summary:${NC}"
 echo -e "  ${G}Passed: $PASSED${NC}"
 if [[ $FAILED -gt 0 ]]; then
   echo -e "  ${R}Failed: $FAILED${NC}"
 fi
-echo -e "${C}════════════════════════════════════════════════════════════════════════${NC}"
+echo -e "${C}========================================================================${NC}"
 echo ""
 
 if [[ $FAILED -eq 0 ]]; then

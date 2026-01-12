@@ -59,9 +59,9 @@ BOLD='\033[1m'
 
 # Clear screen and show header
 clear
-echo -e "${BOLD}${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
-echo -e "${BOLD}${C}║${N}              ${BOLD}${G}RALPH${N} ${D}REAL-TIME MONITORING${N} ${D}(Ctrl+C to exit)${N}              ${BOLD}${C}║${N}"
-echo -e "${BOLD}${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
+echo -e "${BOLD}${C}========================================================================${N}"
+echo -e "${BOLD}${G}RALPH${N} ${D}REAL-TIME MONITORING${N} ${D}(Ctrl+C to exit)${N}"
+echo -e "${BOLD}${C}========================================================================${N}"
 echo ""
 
 # Trap Ctrl+C

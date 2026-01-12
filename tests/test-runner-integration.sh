@@ -87,9 +87,9 @@ assert_contains "$OUTPUT" '"type":"tool_use"'
 test_pass
 
 # =============================================================================
-# Test: Runner with stream-json shows thinking emoji
+# Test: Runner with stream-json shows thinking label
 # =============================================================================
-test_start "runner output shows 🤔 emoji for thinking blocks"
+test_start "runner output shows [THINK] label for thinking blocks"
 TEMP_PROMPT=$(mktemp)
 TEMP_LOG=$(mktemp)
 echo "Test prompt" > "$TEMP_PROMPT"
@@ -98,24 +98,24 @@ echo "Test prompt" > "$TEMP_PROMPT"
 OUTPUT=$("$RUNNER" "$TEMP_PROMPT" "$TEMP_LOG" 2>&1)
 EXIT_CODE=$?
 
-# Check output contains thinking emoji
-assert_contains "$OUTPUT" "🤔"
+# Check output contains thinking label
+assert_contains "$OUTPUT" "[THINK]"
 
 rm -f "$TEMP_PROMPT" "$TEMP_LOG"
 test_pass
 
 # =============================================================================
-# Test: Runner output shows tool emoji for tool calls
+# Test: Runner output shows tool label for tool calls
 # =============================================================================
-test_start "runner output shows 🔧 emoji for tool calls"
+test_start "runner output shows [TOOL] label for tool calls"
 TEMP_PROMPT=$(mktemp)
 TEMP_LOG=$(mktemp)
 echo "Test prompt" > "$TEMP_PROMPT"
 
 OUTPUT=$("$RUNNER" "$TEMP_PROMPT" "$TEMP_LOG" 2>&1)
 
-# Check for tool emoji and tool names
-assert_contains "$OUTPUT" "🔧"
+# Check for tool label and tool names
+assert_contains "$OUTPUT" "[TOOL]"
 assert_contains "$OUTPUT" "Read"
 assert_contains "$OUTPUT" "Edit"
 
@@ -123,17 +123,17 @@ rm -f "$TEMP_PROMPT" "$TEMP_LOG"
 test_pass
 
 # =============================================================================
-# Test: Runner output shows text emoji for assistant responses
+# Test: Runner output shows output label for assistant responses
 # =============================================================================
-test_start "runner output shows 💬 emoji for text responses"
+test_start "runner output shows [OUTPUT] label for text responses"
 TEMP_PROMPT=$(mktemp)
 TEMP_LOG=$(mktemp)
 echo "Test prompt" > "$TEMP_PROMPT"
 
 OUTPUT=$("$RUNNER" "$TEMP_PROMPT" "$TEMP_LOG" 2>&1)
 
-# Check for text emoji and content
-assert_contains "$OUTPUT" "💬"
+# Check for text label and content
+assert_contains "$OUTPUT" "[OUTPUT]"
 assert_contains "$OUTPUT" "updated the version to 2.0.0"
 
 rm -f "$TEMP_PROMPT" "$TEMP_LOG"
@@ -153,9 +153,9 @@ echo "Test prompt" > "$TEMP_PROMPT"
 LOG_CONTENT=$(cat "$TEMP_LOG")
 assert_contains "$LOG_CONTENT" '"type":"assistant"'
 assert_contains "$LOG_CONTENT" '"type":"thinking"'
-# Log should NOT contain emojis (those are only for terminal display)
-assert_not_contains "$LOG_CONTENT" "🤔"
-assert_not_contains "$LOG_CONTENT" "🔧"
+# Log should NOT contain labels (those are only for terminal display)
+assert_not_contains "$LOG_CONTENT" "[THINK]"
+assert_not_contains "$LOG_CONTENT" "[TOOL]"
 
 rm -f "$TEMP_PROMPT" "$TEMP_LOG"
 test_pass

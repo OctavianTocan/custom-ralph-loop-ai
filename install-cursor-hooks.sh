@@ -15,9 +15,9 @@ BOLD='\033[1m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo ""
-echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
-echo -e "${C}║${N}              ${BOLD}Ralph - Cursor Hooks Installation${N}              ${C}║${N}"
-echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
+echo -e "${C}========================================================================${N}"
+echo -e "${BOLD}Ralph - Cursor Hooks Installation${N}"
+echo -e "${C}========================================================================${N}"
 echo ""
 
 # Check if cursor-config exists
@@ -43,18 +43,18 @@ if [[ -f "$CURSOR_DIR/hooks.json" ]]; then
     echo "Skipping hooks.json..."
   else
     cp "$SCRIPT_DIR/cursor-config/hooks.json" "$CURSOR_DIR/hooks.json"
-    echo -e "${G}✓${N} Updated hooks.json"
+    echo -e "${G}[OK]${N} Updated hooks.json"
   fi
 else
   cp "$SCRIPT_DIR/cursor-config/hooks.json" "$CURSOR_DIR/hooks.json"
-  echo -e "${G}✓${N} Installed hooks.json"
+  echo -e "${G}[OK]${N} Installed hooks.json"
 fi
 
 # Create hooks directory
 HOOKS_DIR="$CURSOR_DIR/hooks"
 if [[ ! -d "$HOOKS_DIR" ]]; then
   mkdir -p "$HOOKS_DIR"
-  echo -e "${G}✓${N} Created .cursor/hooks/ directory"
+  echo -e "${G}[OK]${N} Created .cursor/hooks/ directory"
 fi
 
 # Copy hook scripts
@@ -65,16 +65,16 @@ for hook in validate-command.sh log-command.sh track-edit.sh on-stop.sh; do
   if [[ -f "$SCRIPT_DIR/cursor-config/hooks/$hook" ]]; then
     cp "$SCRIPT_DIR/cursor-config/hooks/$hook" "$HOOKS_DIR/$hook"
     chmod +x "$HOOKS_DIR/$hook"
-    echo -e "  ${G}✓${N} $hook"
+    echo -e "  ${G}[OK]${N} $hook"
   else
-    echo -e "  ${Y}!${N} $hook not found in cursor-config/hooks/"
+    echo -e "  ${Y}[!]${N} $hook not found in cursor-config/hooks/"
   fi
 done
 
 echo ""
-echo -e "${C}╔════════════════════════════════════════════════════════════════════════╗${N}"
-echo -e "${C}║${N}                    ${BOLD}Installation Complete${N}                    ${C}║${N}"
-echo -e "${C}╚════════════════════════════════════════════════════════════════════════╝${N}"
+echo -e "${C}========================================================================${N}"
+echo -e "${BOLD}Installation Complete${N}"
+echo -e "${C}========================================================================${N}"
 echo ""
 echo "Cursor hooks installed to:"
 echo "  .cursor/hooks.json"

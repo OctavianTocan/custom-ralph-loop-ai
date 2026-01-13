@@ -538,8 +538,10 @@ for i in $(seq 1 $MAX_ITERATIONS); do
   # Capture most recent iteration log (before writing new header) so restarts can resume faster
   LAST_ITERATION_CONTEXT=""
   if [[ -f "$LOG_FILE" ]]; then
-    LAST_ITERATION_OFFSET=$(tac "$LOG_FILE" | grep -m1 -n -E 'Iteration [0-9]+ of [0-9]+' | cut -d: -f1)
-    if [[ -n "$LAST_ITERATION_OFFSET" ]]; then
+    LAST_ITERATION_LINE=$(awk '/Iteration [0-9]+ of [0-9]+/ {line=NR} END {print line+0}' "$LOG_FILE")
+    if [[ "$LAST_ITERATION_LINE" -gt 0 ]]; then
+      TOTAL_LINES=$(wc -l < "$LOG_FILE")
+      LAST_ITERATION_OFFSET=$((TOTAL_LINES - LAST_ITERATION_LINE + 1))
       LAST_ITERATION_CONTEXT=$(tail -n "$LAST_ITERATION_OFFSET" "$LOG_FILE" | tail -n 200)
     else
       LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")

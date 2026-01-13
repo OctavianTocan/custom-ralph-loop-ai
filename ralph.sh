@@ -542,12 +542,10 @@ for i in $(seq 1 $MAX_ITERATIONS); do
     if [[ -n "$LAST_ITERATION_LINE" ]]; then
       LAST_ITERATION_CONTEXT=$(tail -n +"$LAST_ITERATION_LINE" "$LOG_FILE")
     else
-      LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")
+      LAST_ITERATION_CONTEXT=$(cat "$LOG_FILE")
     fi
 
-    if [[ -n "$LAST_ITERATION_CONTEXT" ]]; then
-      LAST_ITERATION_CONTEXT=$(printf '%s\n' "$LAST_ITERATION_CONTEXT" | tail -n 200)
-    fi
+    LAST_ITERATION_CONTEXT=$(printf '%s\n' "$LAST_ITERATION_CONTEXT" | tail -n 200)
   fi
 
   echo ""

@@ -533,16 +533,21 @@ echo ""
 C='\033[0;36m'
 N='\033[0m'
 BOLD='\033[1m'
+ITERATION_PATTERN='Iteration [0-9]+ of [0-9]+'
 
 for i in $(seq 1 $MAX_ITERATIONS); do
   # Capture most recent iteration log (before writing new header) so restarts can resume faster
   LAST_ITERATION_CONTEXT=""
   if [[ -f "$LOG_FILE" ]]; then
-    LAST_ITERATION_LINE=$(awk '/Iteration [0-9]+ of [0-9]+/ {line=NR} END {print line+0}' "$LOG_FILE")
+    LAST_ITERATION_LINE=$(awk -v pattern="$ITERATION_PATTERN" '$0 ~ pattern {line=NR} END {print line+0}' "$LOG_FILE")
     if [[ "$LAST_ITERATION_LINE" -gt 0 ]]; then
       TOTAL_LINES=$(wc -l < "$LOG_FILE")
       LAST_ITERATION_OFFSET=$((TOTAL_LINES - LAST_ITERATION_LINE + 1))
-      LAST_ITERATION_CONTEXT=$(tail -n "$LAST_ITERATION_OFFSET" "$LOG_FILE" | tail -n 200)
+      if [[ "$LAST_ITERATION_OFFSET" -gt 200 ]]; then
+        LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")
+      else
+        LAST_ITERATION_CONTEXT=$(tail -n "$LAST_ITERATION_OFFSET" "$LOG_FILE")
+      fi
     else
       LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")
     fi

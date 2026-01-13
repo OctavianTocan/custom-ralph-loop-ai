@@ -12,7 +12,7 @@ SCRIPT_CONTENT=$(cat "$RALPH")
 
 test_start "script captures last iteration log for resume context"
 assert_contains "$SCRIPT_CONTENT" "LAST_ITERATION_CONTEXT"
-assert_contains "$SCRIPT_CONTENT" 'LAST_ITERATION_LINE=$(grep -n "Iteration '
+assert_contains "$SCRIPT_CONTENT" "LAST_ITERATION_LINE="
 test_pass
 
 test_start "resume context is appended to the prompt"

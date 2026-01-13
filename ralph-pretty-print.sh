@@ -14,6 +14,7 @@ NC='\033[0m'
 # Truncation limits
 THINKING_LIMIT=200
 RESULT_LIMIT=500
+TOOL_INPUT_LIMIT=200
 
 # Show usage
 show_usage() {
@@ -88,6 +89,37 @@ truncate_string() {
   fi
 }
 
+# Format tool input into a concise, human-readable string
+format_tool_input() {
+  local input_json="$1"
+
+  if [[ -z "$input_json" || "$input_json" == "null" ]]; then
+    echo ""
+    return
+  fi
+
+  if [[ $HAS_JQ -eq 1 ]]; then
+    local formatted
+    formatted=$(echo "$input_json" | jq -rc '
+      if type == "object" and length > 0 then
+        to_entries | map("\(.key)=\(.value|@json)") | join(" ")
+      elif type == "array" and length > 0 then
+        to_entries | map("\(.key)=\(.value|@json)") | join(" ")
+      else
+        .
+      end
+    ' 2>/dev/null || echo "")
+
+    if [[ -z "$formatted" ]]; then
+      formatted=$(echo "$input_json" | jq -c . 2>/dev/null || echo "")
+    fi
+
+    echo "$formatted"
+  else
+    echo "$input_json"
+  fi
+}
+
 # Check if jq is available
 HAS_JQ=0
 if command -v jq &> /dev/null; then
@@ -127,14 +159,18 @@ while IFS= read -r line; do
         tool_use)
           # Extract tool name and input
           TOOL_NAME=$(echo "$line" | jq -r '.message.content[0].name // empty')
-          TOOL_INPUT=$(echo "$line" | jq -r '.message.content[0].input // empty')
+          TOOL_INPUT=$(echo "$line" | jq -c '.message.content[0].input // empty')
 
           if [[ -n "$TOOL_NAME" ]]; then
+            TOOL_DETAILS=$(format_tool_input "$TOOL_INPUT")
             # Try to extract file path if present
             FILE_PATH=$(echo "$TOOL_INPUT" | jq -r '.file_path // empty' 2>/dev/null || echo "")
             COMMAND=$(echo "$TOOL_INPUT" | jq -r '.command // empty' 2>/dev/null || echo "")
 
-            if [[ -n "$FILE_PATH" ]]; then
+            if [[ -n "$TOOL_DETAILS" ]]; then
+              SUMMARY=$(truncate_string "$TOOL_DETAILS" $TOOL_INPUT_LIMIT)
+              echo -e "${CYAN}[TOOL] ${TOOL_NAME}: ${SUMMARY}${NC}"
+            elif [[ -n "$FILE_PATH" ]]; then
               echo -e "${CYAN}[TOOL] ${TOOL_NAME}: ${FILE_PATH}${NC}"
             elif [[ -n "$COMMAND" ]]; then
               echo -e "${CYAN}[TOOL] ${TOOL_NAME}: ${COMMAND}${NC}"
@@ -178,8 +214,14 @@ while IFS= read -r line; do
     # Check for tool_use
     elif echo "$line" | grep -q '"type":"tool_use"'; then
       TOOL_NAME=$(echo "$line" | sed -n 's/.*"name":"\([^"]*\)".*/\1/p')
+      TOOL_INPUT=$(echo "$line" | sed -n 's/.*"input":\({.*}\).*/\1/p')
       if [[ -n "$TOOL_NAME" ]]; then
-        echo -e "${CYAN}[TOOL] ${TOOL_NAME}${NC}"
+        if [[ -n "$TOOL_INPUT" ]]; then
+          SUMMARY=$(truncate_string "$TOOL_INPUT" $TOOL_INPUT_LIMIT)
+          echo -e "${CYAN}[TOOL] ${TOOL_NAME}: ${SUMMARY}${NC}"
+        else
+          echo -e "${CYAN}[TOOL] ${TOOL_NAME}${NC}"
+        fi
       fi
     # Check for text
     elif echo "$line" | grep -q '"type":"text"'; then

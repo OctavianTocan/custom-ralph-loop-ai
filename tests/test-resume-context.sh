@@ -8,18 +8,21 @@ RALPH="$PROJECT_ROOT/ralph.sh"
 # shellcheck source=tests/test-helpers.sh
 source "$SCRIPT_DIR/test-helpers.sh"
 
-SCRIPT_CONTENT=$(cat "$RALPH")
-
 test_start "script captures last iteration log for resume context"
-assert_contains "$SCRIPT_CONTENT" "LAST_ITERATION_CONTEXT"
-assert_contains "$SCRIPT_CONTENT" "LAST_ITERATION_LINE="
+grep -q "LAST_ITERATION_CONTEXT" "$RALPH"
+assert_success
+grep -q "LAST_ITERATION_LINE=" "$RALPH"
+assert_success
 test_pass
 
 test_start "resume context is appended to the prompt"
-assert_contains "$SCRIPT_CONTENT" "Recent Ralph Iteration (resume context)"
+grep -q "Recent Ralph Iteration (resume context)" "$RALPH"
+assert_success
 test_pass
 
 test_start "resume context tail limits size"
-assert_contains "$SCRIPT_CONTENT" 'tail -n +"$LAST_ITERATION_LINE"'
-assert_contains "$SCRIPT_CONTENT" 'tail -n 200'
+grep -q 'tail -n +"$LAST_ITERATION_LINE"' "$RALPH"
+assert_success
+grep -q 'tail -n 200' "$RALPH"
+assert_success
 test_pass

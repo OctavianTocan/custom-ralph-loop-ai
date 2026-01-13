@@ -11,7 +11,7 @@ source "$SCRIPT_DIR/test-helpers.sh"
 test_start "script captures last iteration log for resume context"
 grep -q "LAST_ITERATION_CONTEXT" "$RALPH"
 assert_success
-grep -q "LAST_ITERATION_LINE=" "$RALPH"
+grep -q "LAST_ITERATION_OFFSET=" "$RALPH"
 assert_success
 test_pass
 
@@ -21,7 +21,7 @@ assert_success
 test_pass
 
 test_start "resume context tail limits size"
-grep -q 'tail -n +"$LAST_ITERATION_LINE"' "$RALPH"
+grep -q 'tail -n "$LAST_ITERATION_OFFSET"' "$RALPH"
 assert_success
 grep -q 'tail -n 200' "$RALPH"
 assert_success

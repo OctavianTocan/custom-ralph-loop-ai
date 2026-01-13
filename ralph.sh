@@ -538,10 +538,9 @@ for i in $(seq 1 $MAX_ITERATIONS); do
   # Capture most recent iteration log (before writing new header) so restarts can resume faster
   LAST_ITERATION_CONTEXT=""
   if [[ -f "$LOG_FILE" ]]; then
-    LAST_ITERATION_LINE=$(grep -n -E 'Iteration [0-9]+ of [0-9]+' "$LOG_FILE" | tail -1 | cut -d: -f1)
-    if [[ -n "$LAST_ITERATION_LINE" ]]; then
-      LAST_ITERATION_CONTEXT=$(tail -n +"$LAST_ITERATION_LINE" "$LOG_FILE")
-      LAST_ITERATION_CONTEXT=$(printf '%s\n' "$LAST_ITERATION_CONTEXT" | tail -n 200)
+    LAST_ITERATION_OFFSET=$(tac "$LOG_FILE" | grep -m1 -n -E 'Iteration [0-9]+ of [0-9]+' | cut -d: -f1)
+    if [[ -n "$LAST_ITERATION_OFFSET" ]]; then
+      LAST_ITERATION_CONTEXT=$(tail -n "$LAST_ITERATION_OFFSET" "$LOG_FILE" | tail -n 200)
     else
       LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")
     fi

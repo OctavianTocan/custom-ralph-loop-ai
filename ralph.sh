@@ -535,6 +535,17 @@ N='\033[0m'
 BOLD='\033[1m'
 
 for i in $(seq 1 $MAX_ITERATIONS); do
+  # Capture most recent iteration log (before writing new header) so restarts can resume faster
+  LAST_ITERATION_CONTEXT=""
+  if [[ -f "$LOG_FILE" ]]; then
+    LAST_ITERATION_LINE=$(grep -n "Iteration [0-9]\\+ of [0-9]\\+" "$LOG_FILE" | tail -1 | cut -d: -f1)
+    if [[ -n "$LAST_ITERATION_LINE" ]]; then
+      LAST_ITERATION_CONTEXT=$(tail -n +"$LAST_ITERATION_LINE" "$LOG_FILE" | tail -n 200)
+    else
+      LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")
+    fi
+  fi
+
   echo ""
   echo -e "${C}========================================================================${N}" | tee -a "$LOG_FILE"
   echo -e "${C}Iteration $i of $MAX_ITERATIONS${N}  $(date)" | tee -a "$LOG_FILE"
@@ -563,6 +574,16 @@ $(cat "$SCRIPT_DIR/prompt.md")"
 # Workflow: $WORKFLOW
 
 $WORKFLOW_PROMPT"
+  fi
+
+  # Include recent log so resumed runs pick up immediately
+  if [[ -n "$LAST_ITERATION_CONTEXT" ]]; then
+    PROMPT="$PROMPT
+
+---
+
+# Recent Ralph Iteration (resume context)
+$LAST_ITERATION_CONTEXT"
   fi
 
   PROMPT_FILE=$(mktemp)

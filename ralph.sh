@@ -533,8 +533,27 @@ echo ""
 C='\033[0;36m'
 N='\033[0m'
 BOLD='\033[1m'
+ITERATION_PATTERN='Iteration [0-9]+ of [0-9]+'
 
 for i in $(seq 1 $MAX_ITERATIONS); do
+  # Capture most recent iteration log (before writing new header) so restarts can resume faster
+  LAST_ITERATION_CONTEXT=""
+  if [[ -f "$LOG_FILE" ]]; then
+    LAST_ITERATION_LINE=$(awk -v pattern="$ITERATION_PATTERN" '$0 ~ pattern {line=NR} END {print line+0}' "$LOG_FILE")
+    if [[ "$LAST_ITERATION_LINE" -gt 0 ]]; then
+      TOTAL_LINES=$(wc -l < "$LOG_FILE")
+      LAST_ITERATION_OFFSET=$((TOTAL_LINES - LAST_ITERATION_LINE + 1))
+      if [[ "$LAST_ITERATION_OFFSET" -gt 200 ]]; then
+        LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")
+      else
+        LAST_ITERATION_CONTEXT=$(tail -n "$LAST_ITERATION_OFFSET" "$LOG_FILE")
+      fi
+    else
+      LAST_ITERATION_CONTEXT=$(tail -n 200 "$LOG_FILE")
+    fi
+
+  fi
+
   echo ""
   echo -e "${C}========================================================================${N}" | tee -a "$LOG_FILE"
   echo -e "${C}Iteration $i of $MAX_ITERATIONS${N}  $(date)" | tee -a "$LOG_FILE"
@@ -563,6 +582,16 @@ $(cat "$SCRIPT_DIR/prompt.md")"
 # Workflow: $WORKFLOW
 
 $WORKFLOW_PROMPT"
+  fi
+
+  # Include recent log so resumed runs pick up immediately
+  if [[ -n "$LAST_ITERATION_CONTEXT" ]]; then
+    PROMPT="$PROMPT
+
+---
+
+# Recent Ralph Iteration (resume context)
+$LAST_ITERATION_CONTEXT"
   fi
 
   PROMPT_FILE=$(mktemp)

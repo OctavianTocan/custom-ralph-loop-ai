@@ -20,7 +20,7 @@ The session directory path is provided in the "Session Context" section above. A
 1. **Locate session files** (prd.json, progress.txt, learnings.md)
 2. Read `prd.json` - understand tasks and validation commands
 3. **Read `progress.txt`** - **Check `## Codebase Patterns` section FIRST** for known gotchas and reusable patterns. If section doesn't exist, create it at the top.
-   - **CHECK FOR VALIDATION BLOCKERS** - Look for "Validation Blocked" section indicating previous blocker detection
+   - **CHECK FOR VALIDATION BLOCKERS** - Look for "## Validation Blocked - Handoff Required" section indicating previous blocker detection
 4. **Read `learnings.md`** - apply learnings from previous tasks
 5. Verify you're on the correct branch (must match prd.json.branchName)
    - If not on branch, checkout or create it
@@ -67,7 +67,7 @@ WHILE validations_not_all_passing:
         # Check if blocked by missing tools/env vars/capabilities
         IF is_blocking_error():
             record_blocker()
-            EXIT with BLOCKED status
+            EXIT with VALIDATION_BLOCKED status
         
         fix_issue()
         CONTINUE  # Re-run validations

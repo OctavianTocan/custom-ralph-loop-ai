@@ -136,7 +136,7 @@ test_start "Blocker types are properly documented"
 BLOCKER_TYPES_FOUND=0
 for blocker_type in "missing_env_var" "missing_tool" "missing_capability" "missing_service"; do
   if grep -q "$blocker_type" "$RALPH_DIR/docs/CONFIGURATION.md"; then
-    ((BLOCKER_TYPES_FOUND++)) || true
+    BLOCKER_TYPES_FOUND=$((BLOCKER_TYPES_FOUND + 1))
   fi
 done
 

@@ -41,17 +41,17 @@ The session directory path is provided in the "Session Context" section above. A
     - Append summary to progress.txt
     - **Update Codebase Patterns** in progress.txt if general reusable pattern discovered (create section if missing)
     - **Update AGENTS.md** files in directories with edited files if valuable learnings found
-11. **Stage session files:**
+12. **Stage session files:**
     ```bash
     git add prd.json learnings.md progress.txt
     ```
-12. **Stage implementation files and AGENTS.md updates:**
+13. **Stage implementation files and AGENTS.md updates:**
     ```bash
     git add <modified-files>
     # Also stage any AGENTS.md files you updated
     git add <path-to-AGENTS.md-files>
     ```
-13. Commit with format: `feat: [ID] - [Title]` (or `test: [ID] - [Title]` for test-only commits)
+14. Commit with format: `feat: [ID] - [Title]` (or `test: [ID] - [Title]` for test-only commits)
     - MUST include session files (prd.json, learnings.md, progress.txt)
     - MUST include all implementation changes
     - MUST include AGENTS.md files if updated

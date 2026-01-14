@@ -99,6 +99,46 @@ Complete reference for configuring Ralph and PRDs.
 
 **Important:** If `agent` is `"cursor"`, the `model` field is **MANDATORY**.
 
+## Plugin System
+
+Ralph discovers agents from `plugins/*.plugin.sh`. Use `./ralph.sh --list-agents` to see the installed plugins, their descriptions, model requirements, and auto-approval behavior.
+
+Each plugin should implement the following Bash functions:
+
+- `get_metadata()` → prints key/value metadata (name, description, models, requires_model, auto_approval)
+- `validate_config <prd.json> <model>` → returns non-zero when required config is missing
+- `build_command <prompt> <log> <session> <model>` → prints the command and its arguments, **one per line**
+- `get_auto_approval()` → prints any auto-approval flags or requirements
+
+Example plugin skeleton:
+
+```bash
+#!/bin/bash
+
+get_metadata() {
+  cat <<'EOF'
+name=myagent
+description=My CLI wrapper
+models=custom-model (optional)
+requires_model=false
+auto_approval=--force
+EOF
+}
+
+validate_config() { return 0; }
+
+build_command() {
+  local root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+  echo "$root_dir/runners/run-myagent.sh"
+  echo "$1" # prompt file
+  echo "$2" # log file
+  echo "$3" # session dir
+  echo "$4" # model (optional)
+}
+
+get_auto_approval() { echo "--force"; }
+```
+
 ## Workflows
 
 ### What are Workflows?

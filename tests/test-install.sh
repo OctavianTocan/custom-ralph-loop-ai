@@ -95,6 +95,15 @@ assert_file_executable ".ralph/runners/run-claude.sh"
 test_pass
 
 # =============================================================================
+# Test: plugins/ directory is copied
+# =============================================================================
+test_start "plugins/ directory is copied"
+assert_dir_exists ".ralph/plugins"
+assert_file_exists ".ralph/plugins/claude.plugin.sh"
+assert_file_executable ".ralph/plugins/claude.plugin.sh"
+test_pass
+
+# =============================================================================
 # Test: sessions/ directory is created (empty)
 # =============================================================================
 test_start "sessions/ directory is created"

@@ -31,6 +31,7 @@ What gets installed:
   - ralph-pretty-print.sh  Stream-json formatter
   - prompt.md         Agent instructions
   - runners/          Agent runner scripts
+  - plugins/          Agent plugins for discovery/validation
   - sessions/         Empty sessions directory
 
 Auto-detected integrations:
@@ -87,12 +88,26 @@ if [[ ! -d "$SCRIPT_DIR/runners" ]]; then
   exit 1
 fi
 
+if [[ ! -d "$SCRIPT_DIR/plugins" ]]; then
+  echo "Error: plugins/ directory not found in $SCRIPT_DIR"
+  exit 1
+fi
+
 # Check runners directory has .sh files
 shopt -s nullglob
 runner_files=("$SCRIPT_DIR/runners/"*.sh)
 shopt -u nullglob
 if [[ ${#runner_files[@]} -eq 0 ]]; then
   echo "Error: No .sh files found in $SCRIPT_DIR/runners/"
+  exit 1
+fi
+
+# Check plugins directory has plugin scripts
+shopt -s nullglob
+plugin_files=("$SCRIPT_DIR/plugins/"*.plugin.sh)
+shopt -u nullglob
+if [[ ${#plugin_files[@]} -eq 0 ]]; then
+  echo "Error: No plugins found in $SCRIPT_DIR/plugins/"
   exit 1
 fi
 
@@ -120,6 +135,11 @@ echo "  Copying runners..."
 mkdir -p "$TARGET_DIR/runners"
 cp "$SCRIPT_DIR/runners/"*.sh "$TARGET_DIR/runners/"
 
+# Copy plugins directory
+echo "  Copying plugins..."
+mkdir -p "$TARGET_DIR/plugins"
+cp "$SCRIPT_DIR/plugins/"*.plugin.sh "$TARGET_DIR/plugins/"
+
 # Create sessions directory
 echo "  Creating sessions directory..."
 mkdir -p "$TARGET_DIR/sessions"
@@ -128,6 +148,7 @@ mkdir -p "$TARGET_DIR/sessions"
 echo "  Setting permissions..."
 chmod +x "$TARGET_DIR/"*.sh
 chmod +x "$TARGET_DIR/runners/"*.sh
+chmod +x "$TARGET_DIR/plugins/"*.plugin.sh
 
 # ============================================================================
 # Auto-detect and install to .claude/ and .cursor/

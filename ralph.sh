@@ -7,9 +7,11 @@ set -e
 # Output goes to ralph.log in session directory
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGINS_DIR="$SCRIPT_DIR/plugins"
 MAX_ITERATIONS=10
 SESSION_DIR=""
 FORCE=false
+LIST_AGENTS=false
 WORKFLOW=""
 VERSION="1.0.0"
 
@@ -29,6 +31,7 @@ Options:
   --iterations <n>    Number of iterations (or 'auto' for suggested count)
   --force, -f         Force start even if session is running
   --workflow <name>   Use workflow from .claude/workflows/
+  --list-agents       List available agents discovered from plugins/
   --help, -h          Show this help message
   --version, -v       Show version information
 
@@ -59,6 +62,66 @@ show_version() {
   fi
   # Fallback to hardcoded version
   echo "ralph-ai-coding-loop v$VERSION"
+}
+
+# ============================================================================
+# Plugin helpers
+# ============================================================================
+get_plugin_metadata() {
+  local plugin_file="$1"
+  [[ -f "$plugin_file" ]] || return 1
+  bash -c "source \"$plugin_file\" && get_metadata" 2>/dev/null || true
+}
+
+get_plugin_field() {
+  local metadata="$1"
+  local field="$2"
+  while IFS='=' read -r key value; do
+    if [[ "$key" == "$field" ]]; then
+      echo "$value"
+      return 0
+    fi
+  done <<< "$metadata"
+}
+
+get_plugin_path_for_agent() {
+  local agent="$1"
+  local candidate="$PLUGINS_DIR/$agent.plugin.sh"
+  if [[ -f "$candidate" ]]; then
+    echo "$candidate"
+  fi
+}
+
+show_available_agents() {
+  echo ""
+  echo "Available agents (plugins):"
+
+  shopt -s nullglob
+  local found=0
+  for plugin in "$PLUGINS_DIR"/*.plugin.sh; do
+    local metadata name description models requires auto_approval
+    metadata=$(get_plugin_metadata "$plugin" || true)
+    name=$(get_plugin_field "$metadata" "name")
+    description=$(get_plugin_field "$metadata" "description")
+    models=$(get_plugin_field "$metadata" "models")
+    requires=$(get_plugin_field "$metadata" "requires_model")
+    auto_approval=$(get_plugin_field "$metadata" "auto_approval")
+
+    [[ -n "$name" ]] || continue
+    found=1
+
+    echo "  - $name: ${description:-No description provided}"
+    [[ -n "$models" ]] && echo "    Models: $models"
+    if [[ "$requires" == "true" ]]; then
+      echo "    Requires model in prd.json"
+    fi
+    [[ -n "$auto_approval" ]] && echo "    Auto-approval: $auto_approval"
+  done
+  shopt -u nullglob
+
+  if [[ $found -eq 0 ]]; then
+    echo "  (no plugins found in $PLUGINS_DIR)"
+  fi
 }
 
 # ============================================================================
@@ -179,6 +242,10 @@ while [[ $# -gt 0 ]]; do
       WORKFLOW="$2"
       shift 2
       ;;
+    --list-agents)
+      LIST_AGENTS=true
+      shift
+      ;;
     --iterations)
       if [[ "$2" == "auto" ]]; then
         ITERATIONS_AUTO=true
@@ -197,6 +264,12 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+# Handle plugin listing early
+if [[ "$LIST_AGENTS" == true ]]; then
+  show_available_agents
+  exit 0
+fi
 
 # Resolve session directory
 if [[ -n "$SESSION_DIR" ]]; then
@@ -295,22 +368,33 @@ elif [[ -f "$SESSION_DIR/prd.json" ]]; then
   fi
 fi
 
-# Validate agent
+PLUGIN_FILE=""
+
+# Validate agent (prefer plugin-defined agents)
 case "$AGENT" in
   claude|codex|opencode|cursor)
     ;;
   *)
-    echo "Warning: Unknown agent '$AGENT', defaulting to 'claude'" >&2
-    AGENT="claude"
+    PLUGIN_FILE="$(get_plugin_path_for_agent "$AGENT")"
+    if [[ -z "$PLUGIN_FILE" ]]; then
+      echo "Warning: Unknown agent '$AGENT', defaulting to 'claude'" >&2
+      AGENT="claude"
+    fi
     ;;
 esac
+[[ -n "$PLUGIN_FILE" ]] || PLUGIN_FILE="$(get_plugin_path_for_agent "$AGENT")"
+PLUGIN_LOADED=false
 
 RUNNERS_DIR="$SCRIPT_DIR/runners"
 RUNNER_SCRIPT="$RUNNERS_DIR/run-$AGENT.sh"
 
 if [[ ! -f "$RUNNER_SCRIPT" ]]; then
-  echo "Error: Runner script not found: $RUNNER_SCRIPT" >&2
-  exit 1
+  if [[ -n "$PLUGIN_FILE" ]]; then
+    echo "Warning: Runner script not found, using plugin command: $RUNNER_SCRIPT" >&2
+  else
+    echo "Error: Runner script not found: $RUNNER_SCRIPT" >&2
+    exit 1
+  fi
 fi
 
 # Check if the selected agent's CLI is available
@@ -328,6 +412,45 @@ case "$AGENT" in
     command -v cursor &> /dev/null || echo "Warning: Cursor CLI not found." >&2
     ;;
 esac
+
+# ============================================================================
+# PLUGIN VALIDATION
+# ============================================================================
+if [[ -n "$PLUGIN_FILE" ]]; then
+  if [[ "$PLUGIN_FILE" != "$PLUGINS_DIR/"* || "$(basename "$PLUGIN_FILE")" != "$AGENT.plugin.sh" || ! -f "$PLUGIN_FILE" ]]; then
+    echo "Error: Invalid plugin path for agent '$AGENT': $PLUGIN_FILE" >&2
+    exit 1
+  fi
+  # shellcheck source=/dev/null
+  source "$PLUGIN_FILE"
+  PLUGIN_LOADED=true
+  if declare -f validate_config >/dev/null 2>&1; then
+    if ! validate_config "$SESSION_DIR/prd.json" "$MODEL"; then
+      echo "Plugin validation failed for agent '$AGENT'" >&2
+      exit 1
+    fi
+  fi
+fi
+
+run_agent_command() {
+  local prompt_file="$1"
+  local log_file="$2"
+  local session_dir="$3"
+  local model="$4"
+
+  if [[ "$PLUGIN_LOADED" == true ]] && declare -f build_command >/dev/null 2>&1; then
+    local PLUGIN_CMD=()
+    mapfile -t PLUGIN_CMD < <(build_command "$prompt_file" "$log_file" "$session_dir" "$model")
+    if [[ ${#PLUGIN_CMD[@]} -eq 0 ]]; then
+      echo "Error: Plugin '$AGENT' did not return a command to execute" >&2
+      exit 1
+    fi
+    "${PLUGIN_CMD[@]}" || true
+    return
+  fi
+
+  "$RUNNER_SCRIPT" "$prompt_file" "$log_file" "$session_dir" "$model" || true
+}
 
 # ============================================================================
 # WORKFLOW VALIDATION
@@ -597,7 +720,7 @@ $LAST_ITERATION_CONTEXT"
   PROMPT_FILE=$(mktemp)
   echo "$PROMPT" > "$PROMPT_FILE"
 
-  "$RUNNER_SCRIPT" "$PROMPT_FILE" "$LOG_FILE" "$SESSION_DIR" "$MODEL" || true
+  run_agent_command "$PROMPT_FILE" "$LOG_FILE" "$SESSION_DIR" "$MODEL"
   rm -f "$PROMPT_FILE"
 
   # Check for completion markers in agent output

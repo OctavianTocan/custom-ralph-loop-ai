@@ -95,6 +95,14 @@ assert_contains "$OUTPUT" "--workflow"
 test_pass
 
 # =============================================================================
+# Test: --help shows --list-agents option
+# =============================================================================
+test_start "--help documents --list-agents option"
+OUTPUT=$("$RALPH_SCRIPT" --help 2>&1)
+assert_contains "$OUTPUT" "--list-agents"
+test_pass
+
+# =============================================================================
 # Test: --help shows --help option
 # =============================================================================
 test_start "--help documents --help option"
@@ -128,6 +136,19 @@ else
   test_pass
 fi
 
+test_start "--list-agents exits immediately"
+START_TIME=$(date +%s)
+"$RALPH_SCRIPT" --list-agents > /dev/null 2>&1
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+if [[ $DURATION -gt 2 ]]; then
+  echo -e "${RED}FAIL${NC}"
+  echo "    Agent listing took ${DURATION}s (expected < 2s)"
+  TEST_FAILED=1
+  ((FAILED_TESTS++)) || true
+else
+  test_pass
+fi
 test_start "--help exits immediately without starting session"
 START_TIME=$(date +%s)
 "$RALPH_SCRIPT" --help > /dev/null 2>&1

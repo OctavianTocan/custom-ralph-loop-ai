@@ -45,6 +45,9 @@ assert_contains "$OUTPUT" "[TOOL]"
 assert_contains "$OUTPUT" "Read"
 assert_contains "$OUTPUT" "Edit"
 assert_contains "$OUTPUT" "Bash"
+# Check that tool arguments are shown
+assert_contains "$OUTPUT" 'file_path="/path/to/file.ts"'
+assert_contains "$OUTPUT" 'command="npm test"'
 test_pass
 
 # =============================================================================
@@ -87,8 +90,9 @@ assert_contains "$OUTPUT" "[TOOL]"
 assert_contains "$OUTPUT" "[RESULT]"
 assert_contains "$OUTPUT" "[OUTPUT]"
 # Check expected content
-assert_contains "$OUTPUT" "Read: config.json"
-assert_contains "$OUTPUT" "Edit: config.json"
+assert_contains "$OUTPUT" 'Read: file_path="config.json"'
+assert_contains "$OUTPUT" 'Edit: file_path="config.json"'
+assert_contains "$OUTPUT" 'old_string="1.0.0"'
 assert_contains "$OUTPUT" "updated the version to 2.0.0"
 test_pass
 

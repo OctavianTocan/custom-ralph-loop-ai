@@ -118,6 +118,7 @@ OUTPUT=$("$RUNNER" "$TEMP_PROMPT" "$TEMP_LOG" 2>&1)
 assert_contains "$OUTPUT" "[TOOL]"
 assert_contains "$OUTPUT" "Read"
 assert_contains "$OUTPUT" "Edit"
+assert_contains "$OUTPUT" 'file_path="/home/user/config.json"'
 
 rm -f "$TEMP_PROMPT" "$TEMP_LOG"
 test_pass

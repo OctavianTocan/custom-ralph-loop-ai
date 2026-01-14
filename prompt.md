@@ -20,17 +20,22 @@ The session directory path is provided in the "Session Context" section above. A
 1. **Locate session files** (prd.json, progress.txt, learnings.md)
 2. Read `prd.json` - understand tasks and validation commands
 3. **Read `progress.txt`** - **Check `## Codebase Patterns` section FIRST** for known gotchas and reusable patterns. If section doesn't exist, create it at the top.
+   - **CHECK FOR VALIDATION BLOCKERS** - Look for "Validation Blocked" section indicating previous blocker detection
 4. **Read `learnings.md`** - apply learnings from previous tasks
 5. Verify you're on the correct branch (must match prd.json.branchName)
    - If not on branch, checkout or create it
-6. Pick the HIGHEST PRIORITY story where `passes: false`
-7. **Apply relevant learnings** from learnings.md to your implementation
-8. Implement that ONE story completely
-9. **RUN ALL VALIDATION COMMANDS** (from prd.json.validationCommands)
-   - Run EVERY command, not just typecheck
-   - If ANY validation fails, FIX THE ISSUE and re-run
-   - Do NOT proceed until ALL validations pass
-10. **Update session files BEFORE committing:**
+6. **DETECT VALIDATION BLOCKERS EARLY:**
+   - Check if remaining tasks require tools/capabilities not available
+   - Check if previous iterations attempted same validation and failed
+   - If blockers detected, skip to VALIDATION_BLOCKED stop condition
+7. Pick the HIGHEST PRIORITY story where `passes: false`
+8. **Apply relevant learnings** from learnings.md to your implementation
+9. Implement that ONE story completely
+10. **RUN ALL VALIDATION COMMANDS** (from prd.json.validationCommands)
+    - Run EVERY command, not just typecheck
+    - If ANY validation fails, FIX THE ISSUE and re-run
+    - Do NOT proceed until ALL validations pass
+11. **Update session files BEFORE committing:**
     - Update prd.json: set `passes: true` for completed story
     - **Append to learnings.md** (structured learning entry)
     - Append summary to progress.txt
@@ -58,6 +63,12 @@ WHILE validations_not_all_passing:
     run_all_validation_commands()
     IF any_failed:
         analyze_error()
+        
+        # Check if blocked by missing tools/env vars/capabilities
+        IF is_blocking_error():
+            record_blocker()
+            EXIT with BLOCKED status
+        
         fix_issue()
         CONTINUE  # Re-run validations
     ELSE:
@@ -67,9 +78,18 @@ WHILE validations_not_all_passing:
 **Validation Failure Handling:**
 - Read the FULL error output
 - Identify the root cause
+- **Detect blocking conditions** (missing tools, env vars, capabilities)
 - Fix ALL errors, not just the first one
 - Re-run ALL validations from scratch after fixes
 - Maximum 5 fix attempts per task before logging blocker
+
+**Blocking Conditions to Detect:**
+- Missing environment variables (e.g., `FIREBASE_API_KEY not found`)
+- Missing tools or binaries (e.g., `command not found: browser`)
+- Missing credentials or authentication
+- Missing external services (e.g., database not running)
+- Tasks requiring human judgment or manual intervention
+- Tasks requiring capabilities not available (e.g., browser automation)
 
 ## Validation Commands Reference
 
@@ -315,6 +335,81 @@ Session: {session-directory-path}/
 Tasks: {completed}/{total}
 Commits: {list of commit hashes}
 Learnings captured: docs/solutions/{category}/{filename}.md
+```
+
+### VALIDATION_BLOCKED - Code Complete, Validation Requires Human
+
+When code implementation is complete but validation requires missing tools, environment variables, or human intervention:
+
+**Detection Criteria:**
+1. All code changes are committed
+2. Automated validation commands (typecheck, lint, build) pass
+3. Remaining tasks require one or more of:
+   - Missing environment variables (e.g., FIREBASE_API_KEY)
+   - Missing tools or capabilities (e.g., browser automation)
+   - Human judgment (e.g., visual verification, UX testing)
+   - External services not available in CI (e.g., production database)
+4. Multiple consecutive iterations attempting same validation layer without progress
+
+**When Detected:**
+
+1. **Create handoff document** in progress.txt:
+```markdown
+## Validation Blocked - Handoff Required
+
+Date: {current date}
+Status: CODE_COMPLETE, VALIDATION_BLOCKED
+
+### Code Implementation Status
+✅ All code changes implemented and committed
+✅ Automated validations passing (typecheck, lint, build)
+
+### Validation Blockers
+- [ ] Blocker 1: {type} - {description}
+  - Required for: {task IDs or validation layer}
+  - How to resolve: {specific steps}
+- [ ] Blocker 2: {type} - {description}
+  - Required for: {task IDs or validation layer}
+  - How to resolve: {specific steps}
+
+### Tasks Blocked by Validation
+- {Task ID}: {Title} - requires {blocker}
+- {Task ID}: {Title} - requires {blocker}
+
+### Next Steps for Human
+1. {Specific action to resolve blocker 1}
+2. {Specific action to resolve blocker 2}
+3. After resolving, run: {command to verify}
+4. Update prd.json: set blocked tasks to `passes: true`
+```
+
+2. **Update prd.json** - Add blockers field to each affected task:
+```json
+{
+  "id": "TASK-001",
+  "title": "Task requiring human verification",
+  "passes": false,
+  "blockedBy": {
+    "type": "missing_capability",
+    "description": "Requires browser-based visual verification",
+    "resolution": "Human to verify in browser and mark passes: true"
+  }
+}
+```
+
+3. **Output VALIDATION_BLOCKED marker:**
+```
+<promise>VALIDATION_BLOCKED</promise>
+
+Code Implementation: ✅ COMPLETE
+Automated Validations: ✅ PASSING
+Remaining Tasks: ⚠️ BLOCKED
+
+Blockers:
+- {blocker 1 summary}
+- {blocker 2 summary}
+
+Handoff document: See progress.txt "Validation Blocked - Handoff Required" section
 ```
 
 ### BLOCKED - Cannot Progress

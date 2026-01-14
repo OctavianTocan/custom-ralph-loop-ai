@@ -623,6 +623,21 @@ $LAST_ITERATION_CONTEXT"
     exit 1
   fi
 
+  if tail -100 "$LOG_FILE" | grep -q "<promise>VALIDATION_BLOCKED</promise>"; then
+    echo "" | tee -a "$LOG_FILE"
+    Y='\033[1;33m'
+    echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo -e "${Y}RALPH VALIDATION BLOCKED${N}" | tee -a "$LOG_FILE"
+    echo -e "${Y}Code Implementation: ✅ COMPLETE${N}" | tee -a "$LOG_FILE"
+    echo -e "${Y}Validation Status:   ⚠️  BLOCKED (requires human intervention)${N}" | tee -a "$LOG_FILE"
+    echo "" | tee -a "$LOG_FILE"
+    echo -e "Check progress.txt for handoff document and blocker details" | tee -a "$LOG_FILE"
+    echo -e "Log file: $LOG_FILE" | tee -a "$LOG_FILE"
+    echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo ""
+    exit 2
+  fi
+
   # Check if all stories in PRD are complete (passes: true)
   if command -v jq &> /dev/null && [[ -f "$SESSION_DIR/prd.json" ]]; then
     TOTAL_STORIES=$(jq '.userStories | length' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")

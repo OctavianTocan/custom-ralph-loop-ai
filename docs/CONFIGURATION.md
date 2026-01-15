@@ -51,6 +51,41 @@ Complete reference for configuring Ralph and PRDs.
 | `priority` | ✅ Yes | Number (lower = runs first) |
 | `passes` | ✅ Yes | Boolean (false = not done, true = completed) |
 | `notes` | ❌ No | Optional additional context for the AI |
+| `blockedBy` | ❌ No | Object describing validation blocker (see below) |
+
+### Blocker Field Structure
+
+When a task is blocked by missing tools, environment variables, or capabilities:
+
+```json
+{
+  "id": "TASK-001",
+  "title": "Verify UI changes in browser",
+  "passes": false,
+  "blockedBy": {
+    "type": "missing_capability",
+    "description": "Requires browser-based visual verification",
+    "resolution": "Human to verify in browser and mark passes: true"
+  }
+}
+```
+
+**Blocker Types:**
+- `missing_env_var` - Required environment variable not set
+- `missing_tool` - Required binary or tool not installed
+- `missing_capability` - Requires human judgment or capabilities not available
+- `missing_service` - Required external service not available
+
+**Example with environment variable:**
+```json
+{
+  "blockedBy": {
+    "type": "missing_env_var",
+    "description": "FIREBASE_API_KEY not set",
+    "resolution": "Set FIREBASE_API_KEY in environment and re-run"
+  }
+}
+```
 
 ## Agent Configuration
 

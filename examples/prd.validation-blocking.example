@@ -1,0 +1,77 @@
+{
+  "branchName": "ralph/webapp-validation-layers",
+  "agent": "claude",
+  "model": "sonnet",
+  "validationCommands": {
+    "typecheck": "pnpm typecheck",
+    "lint": "pnpm lint",
+    "build": "pnpm build"
+  },
+  "userStories": [
+    {
+      "id": "UI-001",
+      "title": "Add login form component",
+      "acceptanceCriteria": [
+        "Component created at src/components/LoginForm.tsx",
+        "Has email and password fields",
+        "Has submit button",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "This task can be fully automated - no browser verification needed yet"
+    },
+    {
+      "id": "UI-002",
+      "title": "Add form validation logic",
+      "acceptanceCriteria": [
+        "Email validation (format check)",
+        "Password validation (min 8 chars)",
+        "Form submit handler connected",
+        "typecheck passes",
+        "lint passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Pure logic - can be validated without browser"
+    },
+    {
+      "id": "UI-003",
+      "title": "Verify login form works in browser",
+      "acceptanceCriteria": [
+        "Form renders correctly",
+        "Email field accepts input",
+        "Password field masks input",
+        "Validation messages show on invalid input",
+        "Form submits successfully with valid input"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Requires browser testing which Ralph cannot do autonomously",
+      "blockedBy": {
+        "type": "missing_capability",
+        "description": "Requires browser-based visual and interaction verification",
+        "resolution": "Human to verify in browser at http://localhost:3000 and mark passes: true"
+      }
+    },
+    {
+      "id": "E2E-001",
+      "title": "Add E2E test for login flow",
+      "acceptanceCriteria": [
+        "E2E test file created",
+        "Test verifies login success path",
+        "Test verifies validation error path",
+        "Tests pass locally"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "Requires FIREBASE_API_KEY and database access",
+      "blockedBy": {
+        "type": "missing_env_var",
+        "description": "FIREBASE_API_KEY environment variable not set",
+        "resolution": "Set FIREBASE_API_KEY in environment: export FIREBASE_API_KEY='your-key'"
+      }
+    }
+  ]
+}

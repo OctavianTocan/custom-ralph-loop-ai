@@ -153,6 +153,7 @@ cp .ralph/examples/prd.json.example .ralph/sessions/my-feature/prd.json
 1. All tasks marked as complete but validation failed
 2. Ralph reached max iterations
 3. Ralph is blocked
+4. Validation requires human intervention (missing tools/env vars)
 
 **Solutions:**
 ```bash
@@ -162,6 +163,9 @@ cat .ralph/sessions/my-feature/prd.json | jq '.userStories[] | {id, title, passe
 # Check log for blockers
 tail -100 .ralph/sessions/my-feature/ralph.log | grep -i "block\|error\|fail"
 
+# Check for validation blocked status
+tail -100 .ralph/sessions/my-feature/ralph.log | grep -i "VALIDATION_BLOCKED"
+
 # Manually mark completed tasks
 nano .ralph/sessions/my-feature/prd.json
 # Set passes: true for completed tasks
@@ -169,6 +173,64 @@ nano .ralph/sessions/my-feature/prd.json
 # Continue Ralph
 .ralph/ralph.sh 25 --session my-feature
 ```
+
+## Validation Blocked (Code Complete, Needs Human)
+
+**Symptom:** Ralph exits with "VALIDATION BLOCKED" message. Code is implemented but validation requires human intervention.
+
+**What this means:**
+- All code changes are complete and committed
+- Automated validations (typecheck, lint, build) are passing
+- Remaining tasks require missing tools, environment variables, or human capabilities
+
+**Common blockers:**
+1. Missing environment variables (e.g., `FIREBASE_API_KEY`)
+2. Missing tools (e.g., browser automation, database access)
+3. Tasks requiring human judgment (e.g., visual verification, UX testing)
+4. External services not available in CI environment
+
+**Solutions:**
+
+1. **Check handoff document** in progress.txt:
+```bash
+cat .ralph/sessions/my-feature/progress.txt | grep -A 30 "Validation Blocked - Handoff Required"
+```
+
+2. **Review blockers** listed in the handoff document
+
+3. **Resolve blockers:**
+```bash
+# For missing env vars
+export FIREBASE_API_KEY="your-key-here"
+
+# For missing tools
+npm install -g playwright  # or other required tool
+
+# For human verification tasks
+# Open browser and manually verify the changes work as expected
+```
+
+4. **Mark validated tasks as complete:**
+```json
+{
+  "id": "TASK-001",
+  "passes": true,
+  "blockedBy": null  // Remove blocker after resolving
+}
+```
+
+5. **Continue or mark session complete:**
+```bash
+# If more work needed
+.ralph/ralph.sh 5 --session my-feature
+
+# If all tasks are verified, manually mark remaining tasks as complete
+```
+
+**Exit codes:**
+- Exit 0: Session complete (all tasks passed)
+- Exit 1: Blocked (cannot progress)
+- Exit 2: Validation blocked (code complete, needs human)
 
 ## Build Timeout Issues
 

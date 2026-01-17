@@ -12,6 +12,15 @@ if ! [[ "$1" =~ ^[0-9]+$ ]] || [ "$1" -lt 1 ]; then
   exit 1
 fi
 
+if ! command -v docker >/dev/null 2>&1; then
+  echo "Error: docker is required to run the Claude sandbox."
+  exit 1
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "Warning: pnpm is not installed; coverage commands may fail." >&2
+fi
+
 for (( i = 1; i <= $1; i++ )); do
   prompt=$(cat << 'EOF'
 @test-coverage-progress.txt

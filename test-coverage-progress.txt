@@ -1,0 +1,6 @@
+# Test Coverage Progress
+
+# Append super-concise notes per iteration:
+# - what you tested
+# - coverage % change
+# - any learnings

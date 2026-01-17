@@ -32,12 +32,17 @@ If statement coverage reaches 100%, output <promise>COMPLETE</promise>.
 EOF
   )
 
-  result=$(docker sandbox run claude "$prompt")
+  if ! result=$(docker sandbox run claude "$prompt"); then
+    echo "Error: claude sandbox run failed on iteration $i." >&2
+    exit 1
+  fi
 
   echo "$result"
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
     echo "100% coverage reached, exiting."
-    tt notify "AI Hero CLI: 100% coverage after $i iterations"
+    if command -v tt >/dev/null 2>&1; then
+      tt notify "AI Hero CLI: 100% coverage after $i iterations" || true
+    fi
     exit 0
   fi
 done

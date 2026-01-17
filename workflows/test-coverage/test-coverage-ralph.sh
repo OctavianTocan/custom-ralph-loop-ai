@@ -2,6 +2,9 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROGRESS_FILE="$SCRIPT_DIR/test-coverage-progress.txt"
+
 if [ -z "$1" ]; then
   echo "Usage: $0 <iterations>"
   exit 1
@@ -24,9 +27,9 @@ fi
 NOTIFY_LABEL="${RALPH_NOTIFY_LABEL:-AI Hero CLI}"
 
 for (( i = 1; i <= $1; i++ )); do
-  prompt=$(cat << 'EOF'
-@test-coverage-progress.txt
-Use the notes from test-coverage-progress.txt as context for prior coverage progress.
+  prompt=$(cat << EOF
+@${PROGRESS_FILE}
+Use the notes from ${PROGRESS_FILE} as context for prior coverage progress.
 WHAT MAKES A GREAT TEST:
 A great test covers behavior users depend on. It tests a feature that, if broken, would frustrate or block users.
 It validates real workflows not implementation details. It catches regressions before users do.

@@ -50,7 +50,7 @@ EOF
   )
 
   if ! result=$(docker sandbox run claude "$prompt"); then
-    echo "Error: docker sandbox run claude failed on iteration $i of $1. Verify Docker is running and the sandbox runtime is available." >&2
+    echo "Error: sandboxed Claude run failed on iteration $i of $1. Verify Docker is running and the sandbox runtime is available." >&2
     exit 1
   fi
 

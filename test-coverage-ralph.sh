@@ -21,6 +21,8 @@ if ! command -v pnpm >/dev/null 2>&1; then
   echo "Warning: pnpm is not installed; coverage commands may fail." >&2
 fi
 
+NOTIFY_LABEL="${RALPH_NOTIFY_LABEL:-AI Hero CLI}"
+
 for (( i = 1; i <= $1; i++ )); do
   prompt=$(cat << 'EOF'
 @test-coverage-progress.txt
@@ -47,7 +49,7 @@ EOF
   )
 
   if ! result=$(docker sandbox run claude "$prompt"); then
-    echo "Error: claude sandbox run failed on iteration $i." >&2
+    echo "Error: claude sandbox run failed on iteration $i of $1." >&2
     exit 1
   fi
 
@@ -55,7 +57,7 @@ EOF
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then
     echo "100% coverage reached, exiting."
     if command -v tt >/dev/null 2>&1; then
-      tt notify "AI Hero CLI: 100% coverage after $i iterations" || true
+      tt notify "${NOTIFY_LABEL}: 100% coverage after $i iterations" || true
     fi
     exit 0
   fi

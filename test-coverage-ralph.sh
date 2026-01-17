@@ -18,7 +18,7 @@ if ! command -v docker >/dev/null 2>&1; then
 fi
 
 if ! command -v pnpm >/dev/null 2>&1; then
-  echo "Warning: pnpm is not installed; coverage commands may fail." >&2
+  echo "Warning: pnpm is not installed; coverage analysis commands will fail during test iterations." >&2
 fi
 
 NOTIFY_LABEL="${RALPH_NOTIFY_LABEL:-AI Hero CLI}"
@@ -49,7 +49,7 @@ EOF
   )
 
   if ! result=$(docker sandbox run claude "$prompt"); then
-    echo "Error: claude sandbox run failed on iteration $i of $1." >&2
+    echo "Error: docker sandbox run claude failed on iteration $i of $1. Verify Docker and Claude CLI availability." >&2
     exit 1
   fi
 

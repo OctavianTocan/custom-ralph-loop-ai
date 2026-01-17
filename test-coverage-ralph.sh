@@ -7,6 +7,11 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+if ! [[ "$1" =~ ^[0-9]+$ ]] || [ "$1" -lt 1 ]; then
+  echo "Error: iterations must be a positive integer."
+  exit 1
+fi
+
 for (( i = 1; i <= $1; i++ )); do
   prompt=$(cat << 'EOF'
 @test-coverage-progress.txt

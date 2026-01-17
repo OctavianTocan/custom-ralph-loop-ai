@@ -26,6 +26,7 @@ NOTIFY_LABEL="${RALPH_NOTIFY_LABEL:-AI Hero CLI}"
 for (( i = 1; i <= $1; i++ )); do
   prompt=$(cat << 'EOF'
 @test-coverage-progress.txt
+Use the notes from test-coverage-progress.txt as context for prior coverage progress.
 WHAT MAKES A GREAT TEST:
 A great test covers behavior users depend on. It tests a feature that, if broken, would frustrate or block users.
 It validates real workflows not implementation details. It catches regressions before users do.
@@ -49,7 +50,7 @@ EOF
   )
 
   if ! result=$(docker sandbox run claude "$prompt"); then
-    echo "Error: docker sandbox run claude failed on iteration $i of $1. Verify Docker and Claude CLI availability." >&2
+    echo "Error: docker sandbox run claude failed on iteration $i of $1. Verify Docker is running and the sandbox runtime is available." >&2
     exit 1
   fi
 

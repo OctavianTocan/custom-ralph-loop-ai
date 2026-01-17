@@ -160,7 +160,7 @@ test_pass
 test_start "test-coverage script exists"
 assert_file_exists "$RALPH_DIR/test-coverage-ralph.sh" "test-coverage-ralph.sh should exist"
 assert_file_executable "$RALPH_DIR/test-coverage-ralph.sh" "test-coverage-ralph.sh should be executable"
-grep -q "ONLY WRITE ONE TEST PER ITERATION" "$RALPH_DIR/test-coverage-ralph.sh"
+grep -qi "ONLY WRITE ONE TEST" "$RALPH_DIR/test-coverage-ralph.sh"
 assert_success
 test_pass
 

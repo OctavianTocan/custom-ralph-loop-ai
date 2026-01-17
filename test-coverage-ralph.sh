@@ -8,7 +8,8 @@ if [ -z "$1" ]; then
 fi
 
 for (( i = 1; i <= $1; i++ )); do
-  result=$(docker sandbox run claude "@test-coverage-progress.txt
+  prompt=$(cat << 'EOF'
+@test-coverage-progress.txt
 WHAT MAKES A GREAT TEST:
 A great test covers behavior users depend on. It tests a feature that, if broken, would frustrate or block users.
 It validates real workflows not implementation details. It catches regressions before users do.
@@ -22,13 +23,16 @@ PROCESS:
 Prioritize: error handling users will hit, CLI commands, git operations, file parsing.
 Deprioritize: internal utilities, edge cases users won't encounter, boilerplate.
 3. Write ONE meaningful test that validates the feature works correctly for users.
-4. Run pnpm coverage again coverage should increase as a side effect of testing real behavior.
+4. Run pnpm coverage again. Coverage should increase as a side effect of testing real behavior.
 5. Commit with message: test(<file>): <describe the user behavior being tested>
 6. Append super-concise notes to test-coverage-progress.txt: what you tested, coverage %, any learnings.
 
 ONLY WRITE ONE TEST PER ITERATION.
 If statement coverage reaches 100%, output <promise>COMPLETE</promise>.
-")
+EOF
+  )
+
+  result=$(docker sandbox run claude "$prompt")
 
   echo "$result"
   if [[ "$result" == *"<promise>COMPLETE</promise>"* ]]; then

@@ -44,12 +44,15 @@ mkdir -p sessions
 touch sessions/.gitkeep
 
 # Create a default demo session if no sessions exist (excluding .gitkeep and CLAUDE.md)
-SESSION_COUNT=$(find sessions -maxdepth 1 -type d ! -name sessions ! -name ".*" | wc -l)
+SESSION_COUNT=$(find sessions -maxdepth 1 -type d | grep -v "^\./sessions$" | grep -v "/\." | wc -l)
 if [[ $SESSION_COUNT -eq 0 ]]; then
   echo -e "  ${Y}Creating default demo session...${NC}"
-  ./ralph.sh init quickstart >/dev/null 2>&1 || true
-  if [[ -f sessions/quickstart/prd.json ]]; then
-    echo -e "  ${G}✓${NC} Created sessions/quickstart with example PRD"
+  if ./ralph.sh init quickstart >/dev/null 2>&1; then
+    if [[ -f sessions/quickstart/prd.json ]]; then
+      echo -e "  ${G}✓${NC} Created sessions/quickstart with example PRD"
+    fi
+  else
+    echo -e "  ${Y}⚠${NC} Could not create demo session (might be OK)"
   fi
 else
   echo -e "  ${G}✓${NC} Sessions directory ready ($SESSION_COUNT existing)"
@@ -62,8 +65,8 @@ echo ""
 echo -e "${BOLD}[3/4] Verifying installation...${NC}"
 
 # Check ralph.sh works
-if ./ralph.sh --version >/dev/null 2>&1; then
-  VERSION=$(./ralph.sh --version 2>&1)
+VERSION=$(./ralph.sh --version 2>&1)
+if [[ $? -eq 0 ]]; then
   echo -e "  ${G}✓${NC} ralph.sh: $VERSION"
 else
   echo -e "  ${Y}⚠${NC} ralph.sh version check failed (might be OK)"

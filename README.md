@@ -7,13 +7,17 @@ Ralph is an autonomous AI coding system that implements features while you sleep
 Ralph is **clone-to-ready** — no configuration needed!
 
 ```bash
-# Clone and bootstrap (one command)
-git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git && cd ralph-ai-coding-loop && ./scripts/setup.sh
+# 1. Clone the repository
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git
+cd ralph-ai-coding-loop
 
-# You're ready! Create your first session
+# 2. Bootstrap (sets permissions, creates sessions directory)
+./scripts/setup.sh
+
+# 3. You're ready! Create your first session
 ./ralph.sh init my-feature
 
-# Start coding
+# 4. Start coding
 ./ralph.sh 10 --session my-feature
 ```
 

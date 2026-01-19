@@ -22,6 +22,15 @@ BOLD='\033[1m'
 # Helper Functions
 # ============================================================================
 
+# Escape JSON strings (basic escaping for quotes and backslashes)
+json_escape() {
+  local string="$1"
+  # Escape backslashes first, then quotes
+  string="${string//\\/\\\\}"
+  string="${string//\"/\\\"}"
+  echo "$string"
+}
+
 print_header() {
   echo ""
   echo -e "${C}========================================================================${N}"
@@ -350,12 +359,16 @@ EOF
 for i in "${!TASKS[@]}"; do
   IFS='|' read -r title criteria complexity <<< "${TASKS[$i]}"
   
+  # Escape title for JSON
+  title=$(json_escape "$title")
+  
   # Convert criteria to JSON array
   CRITERIA_JSON="["
   if [[ -n "$criteria" ]]; then
     IFS='|' read -ra CRITERIA_ARRAY <<< "$criteria"
     for j in "${!CRITERIA_ARRAY[@]}"; do
-      CRITERIA_JSON+="\"${CRITERIA_ARRAY[$j]}\""
+      escaped_criterion=$(json_escape "${CRITERIA_ARRAY[$j]}")
+      CRITERIA_JSON+="\"$escaped_criterion\""
       [[ $j -lt $((${#CRITERIA_ARRAY[@]} - 1)) ]] && CRITERIA_JSON+=", "
     done
   fi

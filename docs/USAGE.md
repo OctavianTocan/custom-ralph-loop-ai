@@ -32,6 +32,8 @@ The interview will:
 - Validates your inputs
 - Creates properly formatted files
 
+**See:** [Interactive Interview Example](INTERVIEW-EXAMPLE.md) for a complete walkthrough.
+
 ### Option B: Using `/ralph:setup` Command
 
 If you installed the commands (see [INSTALLATION.md](INSTALLATION.md)):

@@ -7,6 +7,7 @@ This directory contains detailed documentation for Ralph.
 - [INSTALLATION.md](INSTALLATION.md) - Detailed setup instructions
 - [USAGE.md](USAGE.md) - Complete workflow and commands
 - [WRITING-PRDS.md](WRITING-PRDS.md) - How to create effective PRDs
+- [AI-AGENT-GUIDE.md](AI-AGENT-GUIDE.md) - **Guide for AI agents helping users create PRDs**
 - [CONFIGURATION.md](CONFIGURATION.md) - PRD structure and options
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues and solutions
 - [PORTABLE.md](PORTABLE.md) - Portability guide
@@ -18,3 +19,4 @@ This directory contains detailed documentation for Ralph.
 - **Installation**: [INSTALLATION.md](INSTALLATION.md)
 - **Usage**: [USAGE.md](USAGE.md)
 - **Writing PRDs**: [WRITING-PRDS.md](WRITING-PRDS.md)
+- **For AI Agents**: [AI-AGENT-GUIDE.md](AI-AGENT-GUIDE.md)

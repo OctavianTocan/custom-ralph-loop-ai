@@ -8,6 +8,8 @@ arguments: [plan-file]
 
 Helps you create a PRD (prd.json) for the autonomous AI coding loop, optionally backed by a spec/plan file.
 
+> **Note:** This command implements the AI Agent Guide. For detailed best practices, see [docs/AI-AGENT-GUIDE.md](../../docs/AI-AGENT-GUIDE.md).
+
 ## Your Task
 
 User provided: **$ARGUMENTS**

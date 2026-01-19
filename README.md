@@ -238,6 +238,8 @@ See [docs/USAGE.md](docs/USAGE.md) for complete usage guide.
 
 ## Writing Good PRDs
 
+> **For AI Agents:** If you're an AI helping a user create a PRD, see the comprehensive [AI Agent Guide](docs/AI-AGENT-GUIDE.md) with step-by-step instructions, best practices, and complete examples.
+
 ### Task Sizing
 
 ✅ **Right size** (5-15 minutes):
@@ -399,6 +401,7 @@ Ralph runs ALL validation commands after each task. If ANY fail, it retries up t
 - [Usage Guide](docs/USAGE.md) - Complete workflow and commands
 - [Examples](docs/EXAMPLES.md) - Real-world examples and walkthroughs
 - [Writing PRDs](docs/WRITING-PRDS.md) - How to create effective PRDs
+- [AI Agent Guide](docs/AI-AGENT-GUIDE.md) - **Guide for AI agents helping users create PRDs**
 - [Configuration](docs/CONFIGURATION.md) - PRD structure and options
 - [Troubleshooting](docs/TROUBLESHOOTING.md) - Common issues and solutions
 - [Release Process](docs/RELEASING.md) - Creating releases with AI-generated notes

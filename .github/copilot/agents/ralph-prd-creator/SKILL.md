@@ -130,10 +130,6 @@ Tell them they can answer like "1A, 2B, 3C" to go quickly.
 
 After completing the interview, break down the feature:
 
-## Task Breakdown Process
-
-After completing the interview, break down the feature:
-
 ### Step 1: Break Into Atomic Tasks
 
 **Task Sizing Rules:**

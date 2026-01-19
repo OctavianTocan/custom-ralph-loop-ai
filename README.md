@@ -410,8 +410,8 @@ Ralph runs ALL validation commands after each task. If ANY fail, it retries up t
 ## Agent Skills
 
 - **[@ralph-prd-creator](.github/copilot/agents/ralph-prd-creator/)** - Expert agent for creating Ralph PRDs
-- **[@ralph-resume-specialist](.github/copilot/agents/ralph-resume-specialist/)** - Rehydrates Ralph sessions for continuation
-- **[@ralph-bash-tuner](.github/copilot/agents/ralph-bash-tuner/)** - Optimizes and hardens bash scripts
+- **[@ralph-resume-specialist](.github/copilot/agents/ralph-resume-specialist.agent.md)** - Rehydrates Ralph sessions for continuation
+- **[@ralph-bash-tuner](.github/copilot/agents/ralph-bash-tuner.agent.md)** - Optimizes and hardens bash scripts
 
 ## Examples
 

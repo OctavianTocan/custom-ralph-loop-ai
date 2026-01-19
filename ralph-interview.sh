@@ -23,6 +23,8 @@ BOLD='\033[1m'
 # ============================================================================
 
 # Escape JSON strings (basic escaping for quotes and backslashes)
+# Note: This handles common cases. For complex input with control characters,
+# consider using jq for JSON generation
 json_escape() {
   local string="$1"
   # Escape backslashes first, then quotes
@@ -136,8 +138,8 @@ if [[ -z "$SESSION_NAME" ]]; then
   SESSION_NAME=$(ask_question "What would you like to call this session?" "my-feature")
 fi
 
-# Validate session name (convert to kebab-case)
-SESSION_NAME=$(echo "$SESSION_NAME" | tr '[:upper:]' '[:lower:]' | tr '_' '-' | tr ' ' '-')
+# Validate session name (convert to kebab-case, remove special chars)
+SESSION_NAME=$(echo "$SESSION_NAME" | tr '[:upper:]' '[:lower:]' | tr '_' '-' | tr ' ' '-' | sed 's/[^a-z0-9-]//g' | sed 's/--*/-/g' | sed 's/^-\|-$//g')
 FULL_SESSION_NAME="${DATE}-${SESSION_NAME}"
 SESSION_DIR="$SCRIPT_DIR/sessions/$FULL_SESSION_NAME"
 
@@ -279,6 +281,7 @@ else
     
     echo "  Acceptance criteria (one per line, blank line when done):"
     TASK_CRITERIA=$(ask_multiline "  ")
+    # Note: Using pipe (|) as delimiter. Avoid using pipes in criteria text.
     TASK_CRITERIA=$(echo "$TASK_CRITERIA" | paste -sd '|' -)
     
     TASK_COMPLEXITY=$(ask_question "  Complexity (small/medium/large):" "medium")

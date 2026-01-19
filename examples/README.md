@@ -10,6 +10,20 @@ This directory contains example files to help you get started with Ralph.
 
 ## Usage
 
+### Interactive Interview (Recommended)
+
+The easiest way to create a session is through Ralph's interactive interview:
+
+```bash
+# CLI-based interactive interview
+.ralph/ralph-interview.sh
+
+# Or use the AI command
+/ralph:interview
+```
+
+Ralph will ask you questions and automatically generate a PRD. No manual editing required!
+
 ### Basic Session
 
 Copy the example file to create a new session:
@@ -25,7 +39,7 @@ cp .ralph/examples/prd.json.example .ralph/sessions/my-feature/prd.json
 nano .ralph/sessions/my-feature/prd.json
 ```
 
-Or use the `/ralph:plan` command (if installed) to interactively create a PRD.
+Or use the `/ralph:setup` command (if installed) to interactively create a PRD.
 
 ### Test Coverage Workflow
 

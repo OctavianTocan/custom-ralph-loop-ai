@@ -2,27 +2,22 @@
 
 Ralph is an autonomous AI coding system that implements features while you sleep. Each task is completed, validated, committed, and then Ralph moves to the next task — all without human intervention.
 
-## Quick Start
+## Quick Start (Zero Setup)
+
+Ralph is **clone-to-ready** — no configuration needed!
 
 ```bash
-# 1. Install
-cp -r ralph/ .ralph/
-chmod +x .ralph/ralph.sh .ralph/status.sh .ralph/stop.sh .ralph/runners/*.sh
+# Clone and bootstrap (one command)
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git && cd ralph-ai-coding-loop && ./scripts/setup.sh
 
-# 2. Install commands (optional)
-cp ralph/commands/ralph:setup.md .claude/commands/  # Claude Code
-# Or: cp ralph/commands/ralph:setup.md .cursor/commands/  # Cursor
+# You're ready! Create your first session
+./ralph.sh init my-feature
 
-# 3. Create session
-/ralph:setup "Add user authentication system"
-
-# 4. Run Ralph
-.ralph/ralph.sh 25 --session my-feature
-
-# 5. Review results
-git checkout ralph/your-feature
-git log --oneline
+# Start coding
+./ralph.sh 10 --session my-feature
 ```
+
+That's it! Ralph works immediately after cloning with sensible defaults.
 
 ## How It Works
 
@@ -54,15 +49,37 @@ See [docs/USAGE.md](docs/USAGE.md) for detailed workflow.
 - **jq** (optional, for JSON parsing)
 - **AI Agent CLI**: `claude`, `codex`, `opencode`, or `cursor`
 
-### Steps
+### Clone and Run (Development)
 
-1. **Copy Ralph to your project:**
+To use Ralph directly from its own repository:
+
+```bash
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git
+cd ralph-ai-coding-loop
+./scripts/setup.sh  # Makes everything ready (sets permissions, creates sessions dir)
+./ralph.sh init my-feature
+./ralph.sh 10 --session my-feature
+```
+
+### Install into Your Project
+
+To install Ralph into an existing project:
+
+1. **Automatic installation:**
+   ```bash
+   # From your project root
+   git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git /tmp/ralph && \
+     /tmp/ralph/install.sh && \
+     rm -rf /tmp/ralph
+   ```
+
+2. **Or manually copy Ralph:**
    ```bash
    cp -r ralph/ .ralph/
    chmod +x .ralph/ralph.sh .ralph/status.sh .ralph/stop.sh .ralph/runners/*.sh
    ```
 
-2. **Add to package.json (optional):**
+3. **Add to package.json (optional):**
    ```json
    {
      "scripts": {
@@ -73,7 +90,7 @@ See [docs/USAGE.md](docs/USAGE.md) for detailed workflow.
    }
    ```
 
-3. **Install commands (optional):**
+4. **Install commands (optional):**
    ```bash
    # For Claude Code
    cp ralph/commands/ralph:setup.md .claude/commands/
@@ -90,7 +107,23 @@ See [docs/INSTALLATION.md](docs/INSTALLATION.md) for detailed installation guide
 
 This section is designed for AI agents (Claude, Cursor, etc.) helping users install Ralph. All commands are copy-paste ready.
 
-### Quick Install (Recommended)
+### Zero-Setup Clone (Recommended)
+
+Ralph is ready to use immediately after cloning:
+
+```bash
+# Clone and run setup (no prompts, no config)
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git ralph
+cd ralph
+./scripts/setup.sh
+
+# Verify it works
+./ralph.sh --version
+./ralph.sh init test-session
+./ralph.sh 5 --session test-session
+```
+
+### Install Into Project
 
 ```bash
 # Clone and install in one step

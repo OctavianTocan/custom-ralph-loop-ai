@@ -44,7 +44,7 @@ mkdir -p sessions
 touch sessions/.gitkeep
 
 # Create a default demo session if no sessions exist (excluding .gitkeep and CLAUDE.md)
-SESSION_COUNT=$(find sessions -maxdepth 1 -type d | grep -v "^\./sessions$" | grep -v "/\." | wc -l)
+SESSION_COUNT=$(find sessions -maxdepth 1 -type d | grep -v "^sessions$" | grep -v "/\." | wc -l)
 if [[ $SESSION_COUNT -eq 0 ]]; then
   echo -e "  ${Y}Creating default demo session...${NC}"
   if ./ralph.sh init quickstart >/dev/null 2>&1; then
@@ -65,8 +65,8 @@ echo ""
 echo -e "${BOLD}[3/4] Verifying installation...${NC}"
 
 # Check ralph.sh works
-VERSION=$(./ralph.sh --version 2>&1)
-if [[ $? -eq 0 ]]; then
+if ./ralph.sh --version >/dev/null 2>&1; then
+  VERSION=$(./ralph.sh --version 2>&1)
   echo -e "  ${G}✓${NC} ralph.sh: $VERSION"
 else
   echo -e "  ${Y}⚠${NC} ralph.sh version check failed (might be OK)"

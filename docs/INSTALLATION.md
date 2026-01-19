@@ -1,14 +1,25 @@
 # Installation Guide
 
-Complete guide for installing Ralph in your project.
+Complete guide for installing Ralph in your project or using it standalone.
 
-## Quick Install
+## Zero-Setup Quick Start (Recommended)
+
+Ralph is clone-to-ready with sensible defaults:
 
 ```bash
-# Copy Ralph to your project
-cp -r ralph/ .ralph/
-chmod +x .ralph/ralph.sh .ralph/status.sh .ralph/stop.sh .ralph/runners/*.sh
+# Clone Ralph
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git
+cd ralph-ai-coding-loop
+
+# Bootstrap (sets permissions, creates sessions structure)
+./scripts/setup.sh
+
+# You're ready! Create your first session
+./ralph.sh init my-feature
+./ralph.sh 10 --session my-feature
 ```
+
+That's it! No configuration files, no manual setup.
 
 ## Requirements
 
@@ -21,9 +32,36 @@ chmod +x .ralph/ralph.sh .ralph/status.sh .ralph/stop.sh .ralph/runners/*.sh
   - `opencode` (OpenCode CLI)
   - `cursor` (Cursor CLI) - https://cursor.com/docs/cli
 
+## Installation into Existing Project
+
+### Automatic Installation (Recommended)
+
+```bash
+# From your project root
+git clone https://github.com/OctavianTocan/ralph-ai-coding-loop.git /tmp/ralph && \
+  /tmp/ralph/install.sh && \
+  rm -rf /tmp/ralph
+```
+
+This automatically:
+- Copies Ralph to `.ralph/`
+- Sets permissions on all scripts
+- Detects and installs commands for `.claude/` or `.cursor/` if present
+
+### Manual Installation
+
+```bash
+# 1. Copy Ralph to your project
+cp -r ralph/ .ralph/
+chmod +x .ralph/ralph.sh .ralph/status.sh .ralph/stop.sh .ralph/runners/*.sh
+
+# 2. Verify installation
+.ralph/ralph.sh --version
+```
+
 ## Installation Options
 
-### Option 1: Project Root
+### Option 1: Project Root (Default)
 
 ```bash
 cp -r ralph/ .ralph/
@@ -45,11 +83,14 @@ Ralph works from any location - all paths are relative to the script directory.
 
 ## Make Scripts Executable
 
+If you manually copy files without using `install.sh` or `scripts/setup.sh`:
+
 ```bash
 chmod +x .ralph/ralph.sh
 chmod +x .ralph/status.sh
 chmod +x .ralph/stop.sh
 chmod +x .ralph/runners/*.sh
+chmod +x .ralph/plugins/*.plugin.sh
 ```
 
 ## Add to package.json (Optional)

@@ -13,6 +13,9 @@ show_help() {
   cat <<EOF
 Ralph Installation Script
 
+This script installs Ralph into an existing project. For zero-setup development
+directly in Ralph's repository, use './scripts/setup.sh' instead.
+
 Usage:
   ./install.sh [target-directory]
   ./install.sh --help
@@ -42,6 +45,9 @@ Examples:
   ./install.sh                  # Install to .ralph/
   ./install.sh my-ralph         # Install to my-ralph/
   ./install.sh ~/tools/ralph    # Install to absolute path
+
+Zero-Setup Alternative:
+  To use Ralph directly (clone-to-ready): ./scripts/setup.sh
 
 EOF
 }

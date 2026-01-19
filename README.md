@@ -238,6 +238,8 @@ See [docs/USAGE.md](docs/USAGE.md) for complete usage guide.
 
 ## Writing Good PRDs
 
+> **For AI Agents:** If you're an AI helping a user create a PRD, use the `@ralph-prd-creator` agent skill (`.github/copilot/agents/ralph-prd-creator/`) for step-by-step instructions, best practices, and templates.
+
 ### Task Sizing
 
 ✅ **Right size** (5-15 minutes):
@@ -404,6 +406,12 @@ Ralph runs ALL validation commands after each task. If ANY fail, it retries up t
 - [Release Process](docs/RELEASING.md) - Creating releases with AI-generated notes
 - [Portability](docs/PORTABLE.md) - How Ralph works portably
 - [Changes](docs/CHANGES.md) - Change log
+
+## Agent Skills
+
+- **[@ralph-prd-creator](.github/copilot/agents/ralph-prd-creator/)** - Expert agent for creating Ralph PRDs
+- **[@ralph-resume-specialist](.github/copilot/agents/ralph-resume-specialist.agent.md)** - Rehydrates Ralph sessions for continuation
+- **[@ralph-bash-tuner](.github/copilot/agents/ralph-bash-tuner.agent.md)** - Optimizes and hardens bash scripts
 
 ## Examples
 

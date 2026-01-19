@@ -8,6 +8,8 @@ arguments: [plan-file]
 
 Helps you create a PRD (prd.json) for the autonomous AI coding loop, optionally backed by a spec/plan file.
 
+> **Note:** This command is implemented by the `@ralph-prd-creator` agent skill. For detailed best practices, see [.github/copilot/agents/ralph-prd-creator/SKILL.md](../../.github/copilot/agents/ralph-prd-creator/SKILL.md).
+
 ## Your Task
 
 User provided: **$ARGUMENTS**

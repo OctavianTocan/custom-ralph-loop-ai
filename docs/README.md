@@ -12,9 +12,15 @@ This directory contains detailed documentation for Ralph.
 - [PORTABLE.md](PORTABLE.md) - Portability guide
 - [CHANGES.md](CHANGES.md) - Change log
 
+## Agent Skills
+
+For AI agents helping users, see:
+- **[@ralph-prd-creator](../.github/copilot/agents/ralph-prd-creator/)** - Expert agent for creating Ralph PRDs
+
 ## Quick Links
 
 - **Getting Started**: See main [README.md](../README.md)
 - **Installation**: [INSTALLATION.md](INSTALLATION.md)
 - **Usage**: [USAGE.md](USAGE.md)
 - **Writing PRDs**: [WRITING-PRDS.md](WRITING-PRDS.md)
+- **For AI Agents**: Use `@ralph-prd-creator` agent skill

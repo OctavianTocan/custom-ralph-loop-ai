@@ -30,11 +30,18 @@ You will conduct an interactive interview with the user to gather requirements a
    - "Is this a monorepo? If yes, which packages are affected?"
 
 4. **Agent & Model Preferences**
-   - "Which AI agent would you like to use?"
+   - "Which AI agent would you like Ralph to use during execution?"
      - Options: claude (default), codex, opencode, cursor
      - Explain briefly what each offers if user is unsure
-   - "Which model would you like to use? (optional for most agents, required for cursor)"
-     - Examples based on agent selection
+   - "Which model would you like Ralph to use?"
+     - Explain this is the model Ralph will use during execution, not the interviewer
+     - Provide examples based on agent selection:
+       - Claude: sonnet (balanced), opus (most capable), haiku (faster)
+       - Codex: gpt-5.1, gpt-5.2-codex, etc.
+       - OpenCode: anthropic/claude-3-5-sonnet-20241022 (provider/model format)
+       - Cursor: REQUIRED - e.g., claude-sonnet-4-20250514
+     - Optional for most agents, required for cursor
+     - Leave blank to use agent's default
 
 5. **Task Breakdown**
    - "Let me break this down into atomic tasks. Each task should take 5-15 minutes."
@@ -114,9 +121,18 @@ You will conduct an interactive interview with the user to gather requirements a
 
 👤 User: pnpm typecheck and pnpm test
 
-🤖 Ralph: Which AI agent would you like to use? (claude is recommended)
+🤖 Ralph: Which AI agent would you like Ralph to use during execution? (claude is recommended)
 
 👤 User: claude is fine
+
+🤖 Ralph: Which model would you like Ralph to use?
+   Common models for Claude:
+   - sonnet (Claude 3.5 Sonnet - balanced)
+   - opus (Claude Opus - most capable)
+   - haiku (Claude Haiku - faster)
+   Leave blank to use agent's default
+
+👤 User: sonnet
 
 🤖 Ralph: Let me break this down into tasks:
    1. Install NextAuth.js dependencies

@@ -228,19 +228,31 @@ esac
 
 print_success "Agent: $AGENT"
 
+echo ""
+echo -e "${D}The model specifies which AI model Ralph will use during execution.${N}"
+echo ""
+
 MODEL=""
 if [[ "$AGENT" == "cursor" ]]; then
-  MODEL=$(ask_question "Model (required for cursor):" "claude-sonnet-4-20250514")
+  MODEL=$(ask_question "Which model should Ralph use? (required for cursor)" "claude-sonnet-4-20250514")
   if [[ -z "$MODEL" ]]; then
     print_error "Model is required for cursor agent"
     exit 1
   fi
 else
-  MODEL=$(ask_question "Model (optional, leave blank for default):")
+  echo -e "${D}Common models:${N}"
+  echo "  - sonnet (Claude 3.5 Sonnet - balanced)"
+  echo "  - opus (Claude Opus - most capable)"
+  echo "  - haiku (Claude Haiku - faster)"
+  echo "  - Leave blank to use agent's default"
+  echo ""
+  MODEL=$(ask_question "Which model should Ralph use?")
 fi
 
 if [[ -n "$MODEL" ]]; then
   print_success "Model: $MODEL"
+else
+  print_info "Using agent's default model"
 fi
 
 # ============================================================================

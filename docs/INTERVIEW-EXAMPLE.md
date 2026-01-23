@@ -78,7 +78,15 @@ Available agents:
 
 ✓ Agent: claude
 
-❓ Model (optional, leave blank for default):
+The model specifies which AI model Ralph will use during execution.
+
+Common models:
+  - sonnet (Claude 3.5 Sonnet - balanced)
+  - opus (Claude Opus - most capable)
+  - haiku (Claude Haiku - faster)
+  - Leave blank to use agent's default
+
+❓ Which model should Ralph use?
 > sonnet
 
 ✓ Model: sonnet

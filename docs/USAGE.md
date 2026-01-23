@@ -4,7 +4,37 @@ Complete guide for using Ralph in your projects.
 
 ## Creating a Session
 
-### Option A: Using `/ralph:setup` Command (Recommended)
+### Option A: Interactive Interview (Recommended for New Users)
+
+The easiest way to create a session is through Ralph's interactive interview:
+
+**Using CLI:**
+```bash
+.ralph/ralph-interview.sh
+```
+
+**Using AI Command (Claude/Cursor):**
+```
+/ralph:interview
+```
+
+The interview will:
+1. Ask questions about your requirements in a conversational style
+2. Guide you through defining tasks, validation commands, and acceptance criteria
+3. Automatically generate a complete PRD (prd.json) from your responses
+4. Create all necessary session files (prd.json, progress.txt, learnings.md)
+5. Provide next steps to start Ralph
+
+**Benefits:**
+- No need to understand PRD structure beforehand
+- Conversational and beginner-friendly
+- Automatically suggests task breakdowns
+- Validates your inputs
+- Creates properly formatted files
+
+**See:** [Interactive Interview Example](INTERVIEW-EXAMPLE.md) for a complete walkthrough.
+
+### Option B: Using `/ralph:setup` Command
 
 If you installed the commands (see [INSTALLATION.md](INSTALLATION.md)):
 
@@ -18,7 +48,7 @@ This will:
 3. Help break down tasks into atomic, measurable items
 4. Create a session directory with `prd.json`, `progress.txt`, and `learnings.md`
 
-### Option B: Manual Creation
+### Option C: Manual Creation
 
 ```bash
 # Create session directory
@@ -31,7 +61,7 @@ cp .ralph/examples/prd.json.example .ralph/sessions/my-feature/prd.json
 nano .ralph/sessions/my-feature/prd.json
 ```
 
-**Note:** If you used `/ralph:setup`, the session files (`progress.txt` and `learnings.md`) are created automatically. You only need to initialize them manually if creating sessions without the command.
+**Note:** If you used `/ralph:interview` or `/ralph:setup`, the session files (`progress.txt` and `learnings.md`) are created automatically. You only need to initialize them manually if creating sessions without these commands.
 
 ## Running Ralph
 

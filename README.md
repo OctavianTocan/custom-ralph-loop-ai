@@ -10,11 +10,13 @@ cp -r ralph/ .ralph/
 chmod +x .ralph/ralph.sh .ralph/status.sh .ralph/stop.sh .ralph/runners/*.sh
 
 # 2. Install commands (optional)
-cp ralph/commands/ralph:setup.md .claude/commands/  # Claude Code
-# Or: cp ralph/commands/ralph:setup.md .cursor/commands/  # Cursor
+cp ralph/commands/ralph:interview.md .claude/commands/  # Claude Code
+cp ralph/commands/ralph:setup.md .claude/commands/
+# Or: cp ralph/commands/*.md .cursor/commands/  # Cursor
 
-# 3. Create session
-/ralph:setup "Add user authentication system"
+# 3. Create session (interactive)
+/ralph:interview
+# Or: .ralph/ralph-interview.sh
 
 # 4. Run Ralph
 .ralph/ralph.sh 25 --session my-feature
@@ -189,12 +191,23 @@ If you're using Claude in the browser, you can copy-paste the prompt.md content 
 
 ### Create a Session
 
-**Option A: Using `/ralph:setup` command (recommended)**
+**Option A: Interactive Interview (recommended for new users)**
+```bash
+# CLI-based interactive interview
+.ralph/ralph-interview.sh
+
+# Or use the AI command (Claude/Cursor)
+/ralph:interview
+```
+
+Ralph will ask you questions about your requirements and automatically generate a PRD for you. No need to write the PRD manually!
+
+**Option B: Using `/ralph:setup` command**
 ```
 /ralph:setup "Add user authentication system"
 ```
 
-**Option B: Manual creation**
+**Option C: Manual creation**
 ```bash
 mkdir -p .ralph/sessions/my-feature
 cp .ralph/examples/prd.json.example .ralph/sessions/my-feature/prd.json

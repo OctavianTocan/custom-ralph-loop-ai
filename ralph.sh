@@ -787,32 +787,19 @@ $LAST_ITERATION_CONTEXT"
 
   # RULE 2: Agent signals BLOCKED - allow exit only for genuine blockers
   if [[ "$AGENT_SIGNALED_BLOCKED" == true ]]; then
-    # Check if there are incomplete non-blocked tasks
-    if [[ "$TOTAL_STORIES" -gt 0 ]]; then
-      # If not all tasks are complete, agent should continue with non-blocked tasks
-      if [[ "$ALL_TASKS_COMPLETE" != true ]]; then
-        echo "" | tee -a "$LOG_FILE"
-        Y='\033[1;33m'
-        echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
-        echo -e "${Y}WARNING: Agent signaled BLOCKED but tasks remain incomplete${N}" | tee -a "$LOG_FILE"
-        echo -e "${Y}Progress: ${G}$PASSED_STORIES${N}/${BOLD}$TOTAL_STORIES${N} stories complete${N}" | tee -a "$LOG_FILE"
-        echo -e "${Y}Agent should continue with non-blocked tasks...${N}" | tee -a "$LOG_FILE"
-        echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
-        echo "" | tee -a "$LOG_FILE"
-        # Continue to next iteration instead of exiting
-      else
-        # All tasks complete, allow BLOCKED exit for edge cases
-        echo "" | tee -a "$LOG_FILE"
-        R='\033[0;31m'
-        echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
-        echo -e "${R}RALPH BLOCKED${N}" | tee -a "$LOG_FILE"
-        echo -e "Check log file: $LOG_FILE" | tee -a "$LOG_FILE"
-        echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
-        echo ""
-        exit 1
-      fi
+    # If there are incomplete tasks, agent should continue with non-blocked tasks
+    if [[ "$TOTAL_STORIES" -gt 0 && "$ALL_TASKS_COMPLETE" != true ]]; then
+      echo "" | tee -a "$LOG_FILE"
+      Y='\033[1;33m'
+      echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}WARNING: Agent signaled BLOCKED but tasks remain incomplete${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}Progress: ${G}$PASSED_STORIES${N}/${BOLD}$TOTAL_STORIES${N} stories complete${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}Agent should continue with non-blocked tasks...${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo "" | tee -a "$LOG_FILE"
+      # Continue to next iteration instead of exiting
     else
-      # No tasks defined, allow BLOCKED exit
+      # No tasks defined or other unexpected state - allow BLOCKED exit
       echo "" | tee -a "$LOG_FILE"
       R='\033[0;31m'
       echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"

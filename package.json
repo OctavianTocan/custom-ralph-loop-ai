@@ -51,8 +51,7 @@
     "docs/"
   ],
   "scripts": {
-    "test": "bash tests/test-runner.sh",
-    "postinstall": "bash scripts/setup.sh"
+    "test": "bash tests/test-runner.sh"
   },
   "engines": {
     "node": ">=14.0.0"

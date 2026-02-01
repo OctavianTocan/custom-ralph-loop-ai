@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **npm Package Support**: Ralph is now available as an npm package `@ralphie/ralph-ai-coding-loop`
+  - Global installation: `npm install -g @ralphie/ralph-ai-coding-loop`
+  - Local installation: `npm install --save-dev @ralphie/ralph-ai-coding-loop`
+  - Bin commands: `ralph`, `ralph-status`, `ralph-stop`, `ralph-watch`
+- **Package Configuration**: Added `package.json` with complete npm metadata
+  - Scoped package name under `@ralphie` namespace
+  - MIT license
+  - Node.js 14+ requirement
+  - Automatic setup via postinstall script
+- **npm Publishing Controls**: Added `.npmignore` to exclude development files from npm package
+- **Enhanced Documentation**: Updated README.md and INSTALLATION.md with npm installation instructions
+
+### Changed
+- `.gitignore`: Added Node.js and npm-related exclusions (node_modules, package-lock.json, etc.)
+- Installation instructions now prioritize npm installation as the recommended method
+
 ## [1.0.0] - 2026-01-11
 
 ### Added

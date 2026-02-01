@@ -4,6 +4,13 @@
 
 You are an autonomous agent. Your ONLY job is to implement ONE task and make ALL validation commands pass. If validation fails, you MUST fix it before proceeding. No exceptions.
 
+**LOOP ENFORCEMENT:** You CANNOT exit the Ralph loop by signaling COMPLETE or BLOCKED unless:
+- For COMPLETE: ALL tasks in prd.json have `passes: true`
+- For BLOCKED: ALL incomplete tasks are genuinely blocked (not just the current one)
+- For VALIDATION_BLOCKED: Code is complete but validation requires missing tools/env/human intervention
+
+The Ralph loop validates your exit markers against actual task status. Premature exit attempts will be rejected and iterations will continue.
+
 ## Session Directory
 
 Ralph sessions are stored in the session directory provided at runtime.
@@ -29,6 +36,9 @@ The session directory path is provided in the "Session Context" section above. A
    - Check if previous iterations attempted same validation and failed
    - If blockers detected, skip to VALIDATION_BLOCKED stop condition
 7. Pick the HIGHEST PRIORITY story where `passes: false`
+   - **CRITICAL:** Before starting, verify there are incomplete tasks to work on
+   - If ALL tasks have `passes: true`, you should have already exited with COMPLETE
+   - If no incomplete non-blocked tasks exist, output VALIDATION_BLOCKED with details
 8. **Apply relevant learnings** from learnings.md to your implementation
 9. Implement that ONE story completely
 10. **RUN ALL VALIDATION COMMANDS** (from prd.json.validationCommands)
@@ -295,6 +305,15 @@ APPEND to progress.txt BEFORE committing:
 
 ## Stop Conditions
 
+**CRITICAL VALIDATION RULE:** You CANNOT exit the Ralph loop until EITHER:
+1. ALL tasks in prd.json have `passes: true`, OR
+2. ALL iterations are exhausted (the script will handle this), OR
+3. You encounter a genuine VALIDATION_BLOCKED scenario (missing tools/env/capabilities)
+
+**You MUST NOT output COMPLETE or BLOCKED markers unless the conditions above are met.**
+
+The Ralph loop script validates your exit markers against actual task completion. If you signal COMPLETE but tasks remain incomplete, the loop will ignore your signal and continue iterations.
+
 ### SUCCESS - All Stories Complete
 
 When ALL stories have `passes: true`:
@@ -414,15 +433,22 @@ Handoff document: See progress.txt "Validation Blocked - Handoff Required" secti
 
 ### BLOCKED - Cannot Progress
 
+**IMPORTANT:** Only use BLOCKED when you have exhausted all options for the CURRENT task and cannot make progress. If there are other incomplete tasks in prd.json that are not blocked, you MUST continue with those tasks instead of exiting.
+
+The Ralph loop script will prevent premature BLOCKED exits if incomplete tasks remain. Continue working on non-blocked tasks.
+
 After 5 fix attempts on a single task:
 ```
 <promise>BLOCKED: [reason]</promise>
 ```
 
 Before stopping:
-1. Log the blocker in progress.txt with full error details
-2. Still append what you learned to learnings.md
-3. DO NOT invoke /compound (session incomplete)
+1. Check if there are OTHER incomplete tasks in prd.json that you can work on
+2. If yes, move to the next highest-priority incomplete task
+3. Only output BLOCKED if ALL remaining tasks are blocked
+4. Log the blocker in progress.txt with full error details
+5. Still append what you learned to learnings.md
+6. DO NOT invoke /compound (session incomplete)
 
 ## Red Flags (Stop and Investigate)
 

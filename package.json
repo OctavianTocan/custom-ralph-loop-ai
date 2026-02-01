@@ -30,6 +30,7 @@
     "ralph-watch": "./watch.sh"
   },
   "files": [
+    "LICENSE",
     "ralph.sh",
     "status.sh",
     "stop.sh",

@@ -188,14 +188,22 @@ npm version patch  # for bug fixes (1.0.0 -> 1.0.1)
 npm version minor  # for new features (1.0.0 -> 1.1.0)
 npm version major  # for breaking changes (1.0.0 -> 2.0.0)
 
-# 3. Review the package contents
+# 3. Push the version tag created by npm version
+git push && git push --tags
+
+# 4. Create GitHub release (triggers release workflow)
+# Visit: https://github.com/OctavianTocan/ralph-ai-coding-loop/releases/new
+# Or wait for automated release workflow to complete
+
+# 5. Review the package contents
 npm pack --dry-run
 
-# 4. Publish to npm
+# 6. Publish to npm
 npm publish --access public
 
-# 5. Push the version tag created by npm version
-git push && git push --tags
+# 7. Verify the installation
+npm install -g @ralphie/ralph-ai-coding-loop@latest
+ralph --version
 ```
 
 ### Publishing Checklist
@@ -211,9 +219,10 @@ Before publishing to npm:
 ### Post-Publishing
 
 After publishing to npm:
-1. Create a GitHub release with the same version tag
-2. Verify installation works: `npm install -g @ralphie/ralph-ai-coding-loop@latest`
+1. Verify installation works: `npm install -g @ralphie/ralph-ai-coding-loop@latest`
+2. Test the installed commands: `ralph --version`, `ralph --help`
 3. Update documentation if needed
+4. Announce the release on relevant channels
 
 ### Troubleshooting npm Publishing
 

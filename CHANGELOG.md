@@ -14,11 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Bin commands: `ralph`, `ralph-status`, `ralph-stop`, `ralph-watch`
 - **Package Configuration**: Added `package.json` with complete npm metadata
   - Scoped package name under `@ralphie` namespace
-  - MIT license
+  - MIT license with LICENSE file
   - Node.js 14+ requirement
-  - Automatic setup via postinstall script
 - **npm Publishing Controls**: Added `.npmignore` to exclude development files from npm package
-- **Enhanced Documentation**: Updated README.md and INSTALLATION.md with npm installation instructions
+- **Enhanced Documentation**: Updated README.md, INSTALLATION.md, and RELEASING.md with npm installation and publishing instructions
 
 ### Changed
 - `.gitignore`: Added Node.js and npm-related exclusions (node_modules, package-lock.json, etc.)

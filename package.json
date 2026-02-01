@@ -1,0 +1,65 @@
+{
+  "name": "@ralphie/ralph-ai-coding-loop",
+  "version": "1.0.0",
+  "description": "Ralph Wiggum - Autonomous AI Coding Loop that implements features while you sleep",
+  "keywords": [
+    "ai",
+    "autonomous",
+    "coding",
+    "automation",
+    "cli",
+    "claude",
+    "copilot",
+    "development",
+    "workflow"
+  ],
+  "homepage": "https://github.com/OctavianTocan/ralph-ai-coding-loop#readme",
+  "bugs": {
+    "url": "https://github.com/OctavianTocan/ralph-ai-coding-loop/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OctavianTocan/ralph-ai-coding-loop.git"
+  },
+  "license": "MIT",
+  "author": "Octavian Tocan",
+  "bin": {
+    "ralph": "./ralph.sh",
+    "ralph-status": "./status.sh",
+    "ralph-stop": "./stop.sh",
+    "ralph-watch": "./watch.sh"
+  },
+  "files": [
+    "LICENSE",
+    "ralph.sh",
+    "status.sh",
+    "stop.sh",
+    "watch.sh",
+    "ralph-pretty-print.sh",
+    "install.sh",
+    "install-cursor-hooks.sh",
+    "prompt.md",
+    "README.md",
+    "CHANGELOG.md",
+    "runners/",
+    "plugins/",
+    "scripts/",
+    "commands/",
+    "cursor-config/",
+    "agent-configs/",
+    "examples/",
+    "workflows/",
+    "docs/"
+  ],
+  "scripts": {
+    "test": "bash tests/test-runner.sh"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux"
+  ],
+  "preferGlobal": true
+}

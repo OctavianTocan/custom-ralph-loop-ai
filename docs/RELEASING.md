@@ -163,3 +163,77 @@ The GitHub Actions workflow (`.github/workflows/release.yml`):
 4. <cite index="12-5">**Generates AI notes** - Uses `cursor-agent -p --output-format text`</cite> with commit messages and diff stats
 5. **Creates packages** - Both `.tar.gz` and `.zip` formats
 6. **Publishes release** - To GitHub Releases with generated notes
+
+## Publishing to npm
+
+Ralph is available as an npm package `@ralphie/ralph-ai-coding-loop`. To publish a new version to npm:
+
+### Prerequisites
+
+1. **npm account** - Create one at [npmjs.com](https://www.npmjs.com/)
+2. **Organization access** - Must have publish access to `@ralphie` organization
+3. **npm authentication** - Run `npm login` to authenticate
+
+### Publishing Steps
+
+```bash
+# 1. Ensure you're on the main branch with latest changes
+git checkout main
+git pull
+
+# 2. Update version in package.json (follows semver)
+# Edit package.json and bump the version number
+# Or use npm version command:
+npm version patch  # for bug fixes (1.0.0 -> 1.0.1)
+npm version minor  # for new features (1.0.0 -> 1.1.0)
+npm version major  # for breaking changes (1.0.0 -> 2.0.0)
+
+# 3. Push the version tag created by npm version
+git push && git push --tags
+
+# 4. Create GitHub release (triggers release workflow)
+# Visit: https://github.com/OctavianTocan/ralph-ai-coding-loop/releases/new
+# Or wait for automated release workflow to complete
+
+# 5. Review the package contents
+npm pack --dry-run
+
+# 6. Publish to npm
+npm publish --access public
+
+# 7. Verify the installation
+npm install -g @ralphie/ralph-ai-coding-loop@latest
+ralph --version
+```
+
+### Publishing Checklist
+
+Before publishing to npm:
+- [ ] All tests pass (`npm test`)
+- [ ] Package.json version is updated
+- [ ] CHANGELOG.md is updated with release notes
+- [ ] README.md installation instructions are current
+- [ ] Dry-run packaging looks correct (`npm pack --dry-run`)
+- [ ] You're authenticated to npm (`npm whoami`)
+
+### Post-Publishing
+
+After publishing to npm:
+1. Verify installation works: `npm install -g @ralphie/ralph-ai-coding-loop@latest`
+2. Test the installed commands: `ralph --version`, `ralph --help`
+3. Update documentation if needed
+4. Announce the release on relevant channels
+
+### Troubleshooting npm Publishing
+
+**"You do not have permission to publish"**
+- Ensure you're logged in: `npm whoami`
+- Check organization membership: Contact `@ralphie` org owner
+
+**"Package already published"**
+- Version already exists - bump version number
+- Or publish a pre-release: `npm publish --tag beta`
+
+**"Package name too similar"**
+- Scoped package `@ralphie/ralph-ai-coding-loop` avoids conflicts
+- Verify package name in package.json is correct

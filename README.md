@@ -53,6 +53,64 @@ See [docs/USAGE.md](docs/USAGE.md) for detailed workflow.
 - **jq** (optional, for JSON parsing)
 - **AI Agent CLI**: `claude`, `codex`, `opencode`, or `cursor`
 
+### Install via npm (Recommended)
+
+Install Ralph globally to use it across all your projects:
+
+```bash
+# Install globally
+npm install -g @ralphie/ralph-ai-coding-loop
+
+# Or with yarn
+yarn global add @ralphie/ralph-ai-coding-loop
+
+# Or with pnpm
+pnpm add -g @ralphie/ralph-ai-coding-loop
+```
+
+Once installed, Ralph commands are available globally:
+
+```bash
+# Create a new session
+ralph init my-feature
+
+# Start Ralph
+ralph 10 --session my-feature
+
+# Check status
+ralph-status
+
+# Stop Ralph
+ralph-stop
+```
+
+### Install into Your Project (Local)
+
+To install Ralph as a local dependency in your project:
+
+```bash
+# Install as a dev dependency
+npm install --save-dev @ralphie/ralph-ai-coding-loop
+
+# Or with yarn
+yarn add -D @ralphie/ralph-ai-coding-loop
+
+# Or with pnpm
+pnpm add -D @ralphie/ralph-ai-coding-loop
+```
+
+Then add scripts to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "ralph": "ralph",
+    "ralph:status": "ralph-status",
+    "ralph:stop": "ralph-stop"
+  }
+}
+```
+
 ### Clone and Run (Development)
 
 To use Ralph directly from its own repository:
@@ -65,9 +123,9 @@ cd ralph-ai-coding-loop
 ./ralph.sh 10 --session my-feature
 ```
 
-### Install into Your Project
+### Manual Installation
 
-To install Ralph into an existing project:
+To install Ralph into an existing project manually:
 
 1. **Automatic installation:**
    ```bash
@@ -83,18 +141,7 @@ To install Ralph into an existing project:
    chmod +x .ralph/ralph.sh .ralph/status.sh .ralph/stop.sh .ralph/runners/*.sh
    ```
 
-3. **Add to package.json (optional):**
-   ```json
-   {
-     "scripts": {
-       "ralph": ".ralph/ralph.sh",
-       "ralph:status": ".ralph/status.sh",
-       "ralph:stop": ".ralph/stop.sh"
-     }
-   }
-   ```
-
-4. **Install commands (optional):**
+3. **Install commands (optional):**
    ```bash
    # For Claude Code
    cp ralph/commands/ralph:setup.md .claude/commands/
@@ -111,7 +158,50 @@ See [docs/INSTALLATION.md](docs/INSTALLATION.md) for detailed installation guide
 
 This section is designed for AI agents (Claude, Cursor, etc.) helping users install Ralph. All commands are copy-paste ready.
 
-### Zero-Setup Clone (Recommended)
+### Quick Install via npm (Recommended for AI Agents)
+
+The fastest way to get Ralph working:
+
+```bash
+# Install globally
+npm install -g @ralphie/ralph-ai-coding-loop
+
+# Verify it works
+ralph --version
+
+# Create a test session
+ralph init test-session
+
+# Run Ralph
+ralph 5 --session test-session
+
+# Clean up test session
+rm -rf sessions/test-session
+```
+
+### Install Into Existing Project
+
+For users with an existing project, install as a dependency:
+
+```bash
+# Install as dev dependency
+npm install --save-dev @ralphie/ralph-ai-coding-loop
+
+# Add to package.json scripts (already done if using npm)
+# {
+#   "scripts": {
+#     "ralph": "ralph",
+#     "ralph:status": "ralph-status",
+#     "ralph:stop": "ralph-stop"
+#   }
+# }
+
+# Use via npm scripts
+npm run ralph -- init my-feature
+npm run ralph -- 10 --session my-feature
+```
+
+### Zero-Setup Clone (Alternative)
 
 Ralph is ready to use immediately after cloning:
 
@@ -127,7 +217,7 @@ cd ralph
 ./ralph.sh 5 --session test-session
 ```
 
-### Install Into Project
+### Install Into Project (Git Clone Method)
 
 ```bash
 # Clone and install in one step
@@ -165,15 +255,23 @@ cd ralph
 After installation, verify everything works:
 
 ```bash
-# Check version
+# For npm global install
+ralph --version
+# Expected: ralph-ai-coding-loop v1.x.x
+
+ralph --help
+# Expected: Usage information with options
+
+ralph init test-session
+# Expected: Creates sessions/test-session/ with prd.json
+
+# For local .ralph/ install
 .ralph/ralph.sh --version
 # Expected: ralph-ai-coding-loop v1.x.x
 
-# Check help
 .ralph/ralph.sh --help
 # Expected: Usage information with options
 
-# Create a test session
 .ralph/ralph.sh init test-session
 # Expected: Creates .ralph/sessions/test-session/ with prd.json
 

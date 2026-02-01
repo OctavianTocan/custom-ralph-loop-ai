@@ -2,7 +2,81 @@
 
 Complete guide for installing Ralph in your project or using it standalone.
 
-## Zero-Setup Quick Start (Recommended)
+## npm Installation (Recommended)
+
+The easiest way to get started with Ralph is via npm:
+
+### Global Installation
+
+Install Ralph globally to use it across all your projects:
+
+```bash
+# Using npm
+npm install -g @ralphie/ralph-ai-coding-loop
+
+# Using yarn
+yarn global add @ralphie/ralph-ai-coding-loop
+
+# Using pnpm
+pnpm add -g @ralphie/ralph-ai-coding-loop
+```
+
+Once installed, Ralph commands are available globally:
+
+```bash
+# Create a new session
+ralph init my-feature
+
+# Start Ralph
+ralph 10 --session my-feature
+
+# Check status
+ralph-status
+
+# Stop Ralph
+ralph-stop
+
+# Watch logs
+ralph-watch
+```
+
+### Local Installation (Project Dependency)
+
+Install Ralph as a development dependency in your project:
+
+```bash
+# Using npm
+npm install --save-dev @ralphie/ralph-ai-coding-loop
+
+# Using yarn
+yarn add -D @ralphie/ralph-ai-coding-loop
+
+# Using pnpm
+pnpm add -D @ralphie/ralph-ai-coding-loop
+```
+
+Then use via npm scripts or npx:
+
+```bash
+# Via npx
+npx ralph init my-feature
+npx ralph 10 --session my-feature
+
+# Or add to package.json scripts
+{
+  "scripts": {
+    "ralph": "ralph",
+    "ralph:status": "ralph-status",
+    "ralph:stop": "ralph-stop"
+  }
+}
+
+# Then use
+npm run ralph -- init my-feature
+npm run ralph -- 10 --session my-feature
+```
+
+## Zero-Setup Quick Start (Development)
 
 Ralph is clone-to-ready with sensible defaults:
 
@@ -25,6 +99,7 @@ That's it! No configuration files, no manual setup.
 
 - **Bash**: Scripts require bash (available on macOS, Linux, WSL)
 - **Git**: Required for branch management and commits
+- **Node.js**: Version 14 or higher (for npm installation)
 - **jq**: Optional but recommended for JSON parsing (falls back to grep/sed)
 - **AI Agent CLI**: At least one of:
   - `claude` (Claude Code CLI) - https://claude.ai/docs/cli
@@ -32,7 +107,7 @@ That's it! No configuration files, no manual setup.
   - `opencode` (OpenCode CLI)
   - `cursor` (Cursor CLI) - https://cursor.com/docs/cli
 
-## Installation into Existing Project
+## Manual Installation into Existing Project
 
 ### Automatic Installation (Recommended)
 

@@ -723,30 +723,109 @@ $LAST_ITERATION_CONTEXT"
   run_agent_command "$PROMPT_FILE" "$LOG_FILE" "$SESSION_DIR" "$MODEL"
   rm -f "$PROMPT_FILE"
 
-  # Check for completion markers in agent output
+  # ============================================================================
+  # VALIDATION LOOP - Check task completion FIRST before honoring exit markers
+  # ============================================================================
+  
+  # Check if all stories in PRD are complete (passes: true)
+  TOTAL_STORIES=0
+  PASSED_STORIES=0
+  ALL_TASKS_COMPLETE=false
+  
+  if command -v jq &> /dev/null && [[ -f "$SESSION_DIR/prd.json" ]]; then
+    TOTAL_STORIES=$(jq '.userStories | length' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
+    PASSED_STORIES=$(jq '[.userStories[] | select(.passes == true)] | length' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
+
+    if [[ "$TOTAL_STORIES" -gt 0 && "$TOTAL_STORIES" == "$PASSED_STORIES" ]]; then
+      ALL_TASKS_COMPLETE=true
+    fi
+  fi
+
+  # Check for completion markers in agent output - but VALIDATE against actual task completion
+  AGENT_SIGNALED_COMPLETE=false
+  AGENT_SIGNALED_BLOCKED=false
+  AGENT_SIGNALED_VALIDATION_BLOCKED=false
+  
   if tail -100 "$LOG_FILE" | grep -q "<promise>COMPLETE</promise>"; then
-    echo "" | tee -a "$LOG_FILE"
-    G='\033[0;32m'
-    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
-    echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
-    echo -e "Agent signaled completion: $(date)" | tee -a "$LOG_FILE"
-    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
-    echo ""
-    exit 0
+    AGENT_SIGNALED_COMPLETE=true
   fi
-
+  
   if tail -100 "$LOG_FILE" | grep -q "<promise>BLOCKED"; then
-    echo "" | tee -a "$LOG_FILE"
-    R='\033[0;31m'
-    echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
-    echo -e "${R}RALPH BLOCKED${N}" | tee -a "$LOG_FILE"
-    echo -e "Check log file: $LOG_FILE" | tee -a "$LOG_FILE"
-    echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
-    echo ""
-    exit 1
+    AGENT_SIGNALED_BLOCKED=true
+  fi
+  
+  if tail -100 "$LOG_FILE" | grep -q "<promise>VALIDATION_BLOCKED</promise>"; then
+    AGENT_SIGNALED_VALIDATION_BLOCKED=true
   fi
 
-  if tail -100 "$LOG_FILE" | grep -q "<promise>VALIDATION_BLOCKED</promise>"; then
+  # RULE 1: Agent signals COMPLETE - must verify all tasks are actually complete
+  if [[ "$AGENT_SIGNALED_COMPLETE" == true ]]; then
+    if [[ "$ALL_TASKS_COMPLETE" == true ]]; then
+      # Valid completion - all tasks are done
+      echo "" | tee -a "$LOG_FILE"
+      G='\033[0;32m'
+      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
+      echo -e "All $PASSED_STORIES/$TOTAL_STORIES stories passed" | tee -a "$LOG_FILE"
+      echo -e "$(date)" | tee -a "$LOG_FILE"
+      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo ""
+      exit 0
+    else
+      # Invalid completion attempt - tasks remain incomplete
+      echo "" | tee -a "$LOG_FILE"
+      Y='\033[1;33m'
+      echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}WARNING: Agent signaled COMPLETE but tasks remain incomplete${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}Progress: ${G}$PASSED_STORIES${N}/${BOLD}$TOTAL_STORIES${N} stories complete${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}Continuing iteration to complete remaining tasks...${N}" | tee -a "$LOG_FILE"
+      echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo "" | tee -a "$LOG_FILE"
+      # Continue to next iteration instead of exiting
+    fi
+  fi
+
+  # RULE 2: Agent signals BLOCKED - allow exit only for genuine blockers
+  if [[ "$AGENT_SIGNALED_BLOCKED" == true ]]; then
+    # Check if there are incomplete non-blocked tasks
+    if [[ "$TOTAL_STORIES" -gt 0 ]]; then
+      # If not all tasks are complete, agent should continue with non-blocked tasks
+      if [[ "$ALL_TASKS_COMPLETE" != true ]]; then
+        echo "" | tee -a "$LOG_FILE"
+        Y='\033[1;33m'
+        echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+        echo -e "${Y}WARNING: Agent signaled BLOCKED but tasks remain incomplete${N}" | tee -a "$LOG_FILE"
+        echo -e "${Y}Progress: ${G}$PASSED_STORIES${N}/${BOLD}$TOTAL_STORIES${N} stories complete${N}" | tee -a "$LOG_FILE"
+        echo -e "${Y}Agent should continue with non-blocked tasks...${N}" | tee -a "$LOG_FILE"
+        echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
+        echo "" | tee -a "$LOG_FILE"
+        # Continue to next iteration instead of exiting
+      else
+        # All tasks complete, allow BLOCKED exit for edge cases
+        echo "" | tee -a "$LOG_FILE"
+        R='\033[0;31m'
+        echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
+        echo -e "${R}RALPH BLOCKED${N}" | tee -a "$LOG_FILE"
+        echo -e "Check log file: $LOG_FILE" | tee -a "$LOG_FILE"
+        echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
+        echo ""
+        exit 1
+      fi
+    else
+      # No tasks defined, allow BLOCKED exit
+      echo "" | tee -a "$LOG_FILE"
+      R='\033[0;31m'
+      echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo -e "${R}RALPH BLOCKED${N}" | tee -a "$LOG_FILE"
+      echo -e "Check log file: $LOG_FILE" | tee -a "$LOG_FILE"
+      echo -e "${R}========================================================================${N}" | tee -a "$LOG_FILE"
+      echo ""
+      exit 1
+    fi
+  fi
+
+  # RULE 3: Agent signals VALIDATION_BLOCKED - allow exit (validation blockers are legitimate)
+  if [[ "$AGENT_SIGNALED_VALIDATION_BLOCKED" == true ]]; then
     echo "" | tee -a "$LOG_FILE"
     Y='\033[1;33m'
     echo -e "${Y}========================================================================${N}" | tee -a "$LOG_FILE"
@@ -761,25 +840,23 @@ $LAST_ITERATION_CONTEXT"
     exit 2
   fi
 
-  # Check if all stories in PRD are complete (passes: true)
-  if command -v jq &> /dev/null && [[ -f "$SESSION_DIR/prd.json" ]]; then
-    TOTAL_STORIES=$(jq '.userStories | length' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
-    PASSED_STORIES=$(jq '[.userStories[] | select(.passes == true)] | length' "$SESSION_DIR/prd.json" 2>/dev/null || echo "0")
+  # RULE 4: No exit marker but all tasks complete - auto-complete
+  if [[ "$ALL_TASKS_COMPLETE" == true ]]; then
+    echo "" | tee -a "$LOG_FILE"
+    G='\033[0;32m'
+    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
+    echo -e "All $PASSED_STORIES/$TOTAL_STORIES stories passed" | tee -a "$LOG_FILE"
+    echo -e "$(date)" | tee -a "$LOG_FILE"
+    echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
+    echo ""
+    exit 0
+  fi
 
-    if [[ "$TOTAL_STORIES" -gt 0 && "$TOTAL_STORIES" == "$PASSED_STORIES" ]]; then
-      echo "" | tee -a "$LOG_FILE"
-      G='\033[0;32m'
-      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
-      echo -e "${G}RALPH COMPLETE${N}" | tee -a "$LOG_FILE"
-      echo -e "All $PASSED_STORIES/$TOTAL_STORIES stories passed" | tee -a "$LOG_FILE"
-      echo -e "$(date)" | tee -a "$LOG_FILE"
-      echo -e "${G}========================================================================${N}" | tee -a "$LOG_FILE"
-      echo ""
-      exit 0
-    else
-      PCT=$((PASSED_STORIES * 100 / TOTAL_STORIES))
-      echo -e "${C}[Progress]${N} ${G}$PASSED_STORIES${N}/${BOLD}$TOTAL_STORIES${N} stories complete ${D}($PCT%)${N}" | tee -a "$LOG_FILE"
-    fi
+  # Show progress if tasks remain
+  if [[ "$TOTAL_STORIES" -gt 0 ]]; then
+    PCT=$((PASSED_STORIES * 100 / TOTAL_STORIES))
+    echo -e "${C}[Progress]${N} ${G}$PASSED_STORIES${N}/${BOLD}$TOTAL_STORIES${N} stories complete ${D}($PCT%)${N}" | tee -a "$LOG_FILE"
   fi
 
   sleep 2

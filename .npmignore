@@ -1,0 +1,25 @@
+# Development and testing
+tests/
+.github/
+sessions/
+ralph/
+
+# Git
+.git/
+.gitignore
+
+# Demo files
+demo.sh
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.log
+*.tmp
+.ralph.lock

@@ -1,0 +1,37 @@
+{
+  "branchName": "ralph/feature-name",
+  "agent": "claude",
+  "model": "sonnet",
+  "validationCommands": {
+    "typecheck": "pnpm typecheck",
+    "test": "pnpm test",
+    "lint": "pnpm lint"
+  },
+  "userStories": [
+    {
+      "id": "FEAT-001",
+      "title": "Task title here",
+      "acceptanceCriteria": [
+        "File exists: path/to/file.tsx",
+        "Has props: { prop1: string, prop2: number }",
+        "Implements specific behavior",
+        "typecheck passes",
+        "test passes: pnpm test -- file-name"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "Optional context, patterns to follow, or file references"
+    },
+    {
+      "id": "FEAT-002",
+      "title": "Second task title",
+      "acceptanceCriteria": [
+        "File modified: path/to/another-file.tsx",
+        "Integrates with FEAT-001",
+        "typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false
+    }
+  ]
+}

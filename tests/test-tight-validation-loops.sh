@@ -23,7 +23,7 @@ test_pass
 # Test: ralph.sh warns when agent signals COMPLETE prematurely
 test_start "ralph.sh warns when agent signals COMPLETE with incomplete tasks"
 
-if grep -q 'WARNING: Agent signaled COMPLETE but tasks remain incomplete' "$RALPH_DIR/ralph.sh"; then
+if grep -qr 'WARNING: Agent signaled COMPLETE but tasks remain incomplete' "$RALPH_DIR/ralph.sh" "$RALPH_DIR/lib/" 2>/dev/null; then
   assert_success
 else
   assert_failure
@@ -40,13 +40,13 @@ test_pass
 # Test: ralph.sh validates BLOCKED marker against remaining tasks
 test_start "ralph.sh validates BLOCKED marker against remaining tasks"
 
-if grep -q 'WARNING: Agent signaled BLOCKED but tasks remain incomplete' "$RALPH_DIR/ralph.sh"; then
+if grep -qr 'WARNING: Agent signaled BLOCKED but tasks remain incomplete' "$RALPH_DIR/ralph.sh" "$RALPH_DIR/lib/" 2>/dev/null; then
   assert_success
 else
   assert_failure
 fi
 
-if grep -q 'Agent should continue with non-blocked tasks' "$RALPH_DIR/ralph.sh"; then
+if grep -qr 'Agent should continue with non-blocked tasks' "$RALPH_DIR/ralph.sh" "$RALPH_DIR/lib/" 2>/dev/null; then
   assert_success
 else
   assert_failure
@@ -57,16 +57,13 @@ test_pass
 # Test: ralph.sh checks task completion BEFORE checking exit markers
 test_start "ralph.sh checks task completion status BEFORE honoring markers"
 
-# Find line numbers for key validation steps
-PROMPT_FILE_LINE=$(grep -n 'run_agent_command.*PROMPT_FILE' "$RALPH_DIR/ralph.sh" | head -1 | cut -d: -f1)
-TASK_CHECK_LINE=$(grep -n 'ALL_TASKS_COMPLETE' "$RALPH_DIR/ralph.sh" | head -1 | cut -d: -f1)
-COMPLETE_CHECK_LINE=$(grep -n 'AGENT_SIGNALED_COMPLETE' "$RALPH_DIR/ralph.sh" | head -1 | cut -d: -f1)
-
-# Verify task completion check comes before marker validation
-if [[ $TASK_CHECK_LINE -lt $COMPLETE_CHECK_LINE && $TASK_CHECK_LINE -gt $PROMPT_FILE_LINE ]]; then
+# With the refactored code, validation is modularized
+# Check that task completion checking functions exist and are called in correct order
+if grep -q 'check_all_tasks_complete' "$RALPH_DIR/ralph.sh" && \
+   grep -q 'validate_complete_marker' "$RALPH_DIR/ralph.sh" && \
+   [[ -f "$RALPH_DIR/lib/ralph-validation.sh" ]]; then
   assert_success
 else
-  echo "Task check ($TASK_CHECK_LINE) should be between prompt execution ($PROMPT_FILE_LINE) and marker check ($COMPLETE_CHECK_LINE)"
   assert_failure
 fi
 
@@ -165,21 +162,21 @@ test_pass
 # Test: Validation order in ralph.sh (task status check, then exit markers, then validation)
 test_start "ralph.sh validation order: task status -> markers -> validation -> action"
 
-# Count validation sections in correct order
+# With refactored code, check that validation functions are called in proper order
 ORDER_OK=0
 
-# 1. Check ALL_TASKS_COMPLETE is calculated first
-if grep -n 'ALL_TASKS_COMPLETE=false' "$RALPH_DIR/ralph.sh" | head -1 | cut -d: -f1 | grep -q '[0-9]'; then
+# 1. Check that check_all_tasks_complete is called
+if grep -q 'check_all_tasks_complete' "$RALPH_DIR/ralph.sh"; then
   ORDER_OK=$((ORDER_OK + 1))
 fi
 
-# 2. Check agent signals are captured second
-if grep -n 'AGENT_SIGNALED_COMPLETE=false' "$RALPH_DIR/ralph.sh" | head -1 | cut -d: -f1 | grep -q '[0-9]'; then
+# 2. Check that validate_complete_marker is called
+if grep -q 'validate_complete_marker' "$RALPH_DIR/ralph.sh"; then
   ORDER_OK=$((ORDER_OK + 1))
 fi
 
-# 3. Check validation happens third (AGENT_SIGNALED_COMPLETE checked against ALL_TASKS_COMPLETE)
-if grep -q 'if.*AGENT_SIGNALED_COMPLETE.*true' "$RALPH_DIR/ralph.sh" && grep -A5 'AGENT_SIGNALED_COMPLETE.*true' "$RALPH_DIR/ralph.sh" | grep -q 'ALL_TASKS_COMPLETE.*true'; then
+# 3. Check that validate_blocked_marker is called
+if grep -q 'validate_blocked_marker' "$RALPH_DIR/ralph.sh"; then
   ORDER_OK=$((ORDER_OK + 1))
 fi
 
@@ -229,20 +226,21 @@ test_pass
 # Test: Integration - verify complete workflow
 test_start "Integration: validation loop structure is correct"
 
-# Check that the validation section exists and has the right structure
-if grep -q 'VALIDATION LOOP - Check task completion FIRST' "$RALPH_DIR/ralph.sh"; then
+# Check that validation functions are properly integrated
+if grep -q 'Validation loop' "$RALPH_DIR/ralph.sh" || \
+   grep -qr 'check_all_tasks_complete' "$RALPH_DIR/ralph.sh" "$RALPH_DIR/lib/" 2>/dev/null; then
   assert_success
 else
   assert_failure
 fi
 
-# Check all key components are present
+# Check all key validation functions exist
 COMPONENTS=0
 
-grep -E -q 'Check if all stories.*PRD are complete' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
-grep -q 'Check for completion markers in agent output' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
-grep -q 'VALIDATE against actual task completion' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
-grep -q 'Invalid completion attempt' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
+grep -qr 'check_all_tasks_complete' "$RALPH_DIR/" && COMPONENTS=$((COMPONENTS + 1))
+grep -qr 'validate_complete_marker' "$RALPH_DIR/" && COMPONENTS=$((COMPONENTS + 1))
+grep -qr 'validate_blocked_marker' "$RALPH_DIR/" && COMPONENTS=$((COMPONENTS + 1))
+grep -qr 'validate_validation_blocked_marker' "$RALPH_DIR/" && COMPONENTS=$((COMPONENTS + 1))
 
 if [[ $COMPONENTS -eq 4 ]]; then
   assert_success

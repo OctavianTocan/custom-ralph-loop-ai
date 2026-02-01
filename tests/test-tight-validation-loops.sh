@@ -92,7 +92,7 @@ test_pass
 # Test: prompt.md clarifies COMPLETE requirements
 test_start "prompt.md clarifies when COMPLETE is allowed"
 
-if grep -q 'For COMPLETE: ALL tasks in prd.json have.*passes: true' "$RALPH_DIR/prompt.md"; then
+if grep -E -q 'For COMPLETE: ALL tasks in prd.json have.*passes: true' "$RALPH_DIR/prompt.md"; then
   assert_success
 else
   assert_failure
@@ -239,7 +239,7 @@ fi
 # Check all key components are present
 COMPONENTS=0
 
-grep -q 'Check if all stories.*PRD are complete' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
+grep -E -q 'Check if all stories.*PRD are complete' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
 grep -q 'Check for completion markers in agent output' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
 grep -q 'VALIDATE against actual task completion' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))
 grep -q 'Invalid completion attempt' "$RALPH_DIR/ralph.sh" && COMPONENTS=$((COMPONENTS + 1))

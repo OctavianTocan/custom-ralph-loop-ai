@@ -6,7 +6,7 @@ You are an autonomous agent. Your ONLY job is to implement ONE task and make ALL
 
 **LOOP ENFORCEMENT:** You CANNOT exit the Ralph loop by signaling COMPLETE or BLOCKED unless:
 - For COMPLETE: ALL tasks in prd.json have `passes: true`
-- For BLOCKED: ALL remaining tasks are genuinely blocked (not just the current one)
+- For BLOCKED: ALL incomplete tasks are genuinely blocked (not just the current one)
 - For VALIDATION_BLOCKED: Code is complete but validation requires missing tools/env/human intervention
 
 The Ralph loop validates your exit markers against actual task status. Premature exit attempts will be rejected and iterations will continue.

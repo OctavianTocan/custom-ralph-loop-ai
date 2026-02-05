@@ -156,5 +156,18 @@ test_start "ralph/commands directory exists"
 assert_dir_exists "$RALPH_DIR/ralph/commands" "ralph/commands should exist for distribution"
 test_pass
 
+# Test 14: Test coverage helper script exists
+test_start "test-coverage script exists"
+assert_file_exists "$RALPH_DIR/workflows/test-coverage/test-coverage-ralph.sh" "test-coverage-ralph.sh should exist"
+assert_file_executable "$RALPH_DIR/workflows/test-coverage/test-coverage-ralph.sh" "test-coverage-ralph.sh should be executable"
+grep -qi "ONLY WRITE ONE TEST" "$RALPH_DIR/workflows/test-coverage/test-coverage-ralph.sh"
+assert_success
+test_pass
+
+# Test 15: Test coverage progress file exists
+test_start "test-coverage progress file exists"
+assert_file_exists "$RALPH_DIR/workflows/test-coverage/test-coverage-progress.txt" "test-coverage-progress.txt should exist"
+test_pass
+
 echo ""
 echo "Workflow tests completed"
